@@ -11,7 +11,7 @@ A Next.js app that lets a developer:
 3. Spawn a Claude Agent SDK run in a separate Node worker process; the worker clones the repo into a temp working directory, lets Claude work, and streams events back.
 4. See the run progress live on the kanban card; on completion, optionally push a branch and open a PR via GitHub CLI (`gh`).
 
-The architectural reference is the Cursor `agent-kanban` cookbook example, but the runtime is the Claude Agent SDK in **local** mode (no Anthropic-hosted sandbox), and execution happens in a worker subprocess for isolation.
+The architectural reference is the [Cursor `agent-kanban` cookbook example](https://github.com/cursor/cookbook/tree/main/sdk/agent-kanban) (MIT). We are porting that project to the Claude Agent SDK in **local** mode (no Anthropic-hosted sandbox), with execution in a worker subprocess for isolation. When you face a UX or layout decision in phases 2–3, the Cursor implementation is a legitimate reference to consult — but **do not copy code from it**; we own this codebase.
 
 ## How to work in this repo
 
@@ -20,7 +20,8 @@ The architectural reference is the Cursor `agent-kanban` cookbook example, but t
 1. `docs/00-overview.md` — what we're building
 2. `docs/01-architecture.md` — how it fits together
 3. `docs/02-agent-sdk-usage.md` — exact SDK surfaces in use
-4. `tasks/README.md` — phased roadmap
+4. `docs/05-relation-to-cursor-cookbook.md` — what we kept, changed, and dropped vs. the original
+5. `tasks/README.md` — phased roadmap
 
 **Then start with the lowest-numbered unfinished task in `tasks/`.**
 

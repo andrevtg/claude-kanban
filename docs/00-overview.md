@@ -2,7 +2,7 @@
 
 ## What we're building
 
-A single-user web app that mimics the Cursor `agent-kanban` UX, but uses the Claude Agent SDK in local mode as the runtime.
+A single-user web app that mimics the [Cursor `agent-kanban` cookbook example](https://github.com/cursor/cookbook/tree/main/sdk/agent-kanban) UX, but uses the Claude Agent SDK in local mode as the runtime. See [`05-relation-to-cursor-cookbook.md`](05-relation-to-cursor-cookbook.md) for the full side-by-side.
 
 A **card** on the board represents one task the agent will perform on a real local git repository — for example, "fix the failing test in `auth.spec.ts`" or "add a `--dry-run` flag to the CLI." When the user moves a card from `Backlog` to `In Progress` (or clicks "Run"), the system:
 

@@ -26,6 +26,8 @@ Replace the CLI with a minimal web app. One hardcoded card, no DnD, no settings 
 
 **Done when:** Browser shows a single card; clicking "Run" spawns a worker and streams agent output live into a scrollable log.
 
+Before starting phase 2, re-read `docs/05-relation-to-cursor-cookbook.md`. The Cursor cookbook is a legitimate UX reference for layout and interaction decisions in this and the next phase. Don't copy code; do let it inform "what does a card look like" and "what goes in the side drawer" choices.
+
 ## Phase 3 — Real kanban
 
 Multiple cards, drag-and-drop between columns, settings page, persistent state across reloads.
