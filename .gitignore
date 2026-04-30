@@ -1,0 +1,32 @@
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+
+# Local data dir, only relevant if you point CLAUDE_KANBAN_HOME inside the repo for tests
+.claude-kanban/
+.claude-kanban-test/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# tsbuildinfo
+*.tsbuildinfo
+
+# Test outputs
+coverage/
