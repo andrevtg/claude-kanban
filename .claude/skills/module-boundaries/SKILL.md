@@ -44,6 +44,12 @@ The web layer — both route handlers and entrypoints under `src/app/` and React
 
 Allowed for `src/app/` and `src/components/`: `src/lib/`, `src/protocol/`, external packages, React, Next.js.
 
+### Type-only imports count
+
+These rules apply to `import type { ... }` exactly as they apply to value imports. TypeScript's `verbatimModuleSyntax` will erase the import at build time, but the *coupling between modules* is still real: a refactor that removes the type-only import yesterday is the same refactor that adds a value import tomorrow. There is no "I'm only importing a type" exception to any of the four rules above.
+
+If two sides need to agree on a type, the type belongs in `src/protocol/`.
+
 ## Why these rules exist
 
 The architectural goal is a clean port to **Claude Managed Agents** later. In that world, `src/worker/` mostly disappears and is replaced by an HTTP client that talks to `/v1/sessions` and consumes SSE. The rest of the app — UI, store, supervisor's interface, protocol types, card model — is unchanged.

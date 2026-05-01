@@ -45,7 +45,7 @@ src/
     └── settings.ts         GlobalSettings type
 ```
 
-**Hard rule:** `src/worker/` and `src/lib/` must not import each other. `src/protocol/` is the only shared surface. Enforce with a lint rule in phase 5.
+**Hard rule:** `src/worker/` and `src/lib/` must not import each other. `src/protocol/` is the only shared surface. Enforce with a lint rule in phase 5. These rules apply to `import type` as well as value imports; type-only coupling is still coupling.
 
 ## Data model
 
@@ -94,11 +94,13 @@ type Run = {
 Bidirectional NDJSON over stdio. One JSON object per line.
 
 **Parent → Worker:**
+
 - `{ type: "init", run: RunInitPayload }` — sent once, immediately after spawn.
 - `{ type: "approve_pr", title, body }` — instructs the worker to push and open a PR.
 - `{ type: "cancel" }` — abort current SDK query.
 
 **Worker → Parent:**
+
 - `{ type: "ready" }` — worker is up.
 - `{ type: "event", event: AgentEvent }` — wraps SDK messages and worker-internal events; see `src/protocol/messages.ts`.
 - `{ type: "diff_ready", stat }` — git diff produced.
