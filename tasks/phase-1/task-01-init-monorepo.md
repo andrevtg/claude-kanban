@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-1 / task-01 — Init monorepo
 
 ## Goal
@@ -28,11 +30,13 @@ Initialize the project as a TypeScript-strict pnpm workspace, with the directory
 ## Dependencies to install
 
 Production:
+
 - `@anthropic-ai/claude-agent-sdk`
 - `ulid`
 - `zod`
 
 Dev:
+
 - `typescript`
 - `@types/node`
 - `tsx`

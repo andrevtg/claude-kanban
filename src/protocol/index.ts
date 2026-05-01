@@ -1,3 +1,3 @@
-export * from "./card";
-export * from "./messages";
-export * from "./settings";
+export * from "./card.js";
+export * from "./messages.js";
+export * from "./settings.js";

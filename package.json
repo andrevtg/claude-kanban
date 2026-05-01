@@ -4,11 +4,29 @@
   "private": true,
   "description": "A kanban board for Claude Agent SDK runs (local mode). See README.md and CLAUDE.md.",
   "type": "module",
-  "scripts": {
-    "//": "Phase-1/task-01 will replace these with the real scripts (typecheck, lint, format, cli).",
-    "bootstrap": "echo 'See tasks/phase-1/task-01-init-monorepo.md before running pnpm install.' && exit 1"
-  },
+  "packageManager": "pnpm@10.25.0",
   "engines": {
     "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.123",
+    "ulid": "^3.0.2",
+    "zod": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^10.2.1",
+    "prettier": "^3.8.3",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }

@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+build
+.agents
+.claude
+pnpm-lock.yaml
+
+# Markdown is governed by markdownlint, not Prettier.
+*.md
