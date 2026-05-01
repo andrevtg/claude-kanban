@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-2 / task-03 — SSE event stream
 
 ## Goal

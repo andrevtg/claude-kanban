@@ -220,6 +220,10 @@ export class Supervisor extends EventEmitter {
     return readyPromise;
   }
 
+  isActive(runId: string): boolean {
+    return this.active.has(runId);
+  }
+
   async cancel(runId: string): Promise<void> {
     const active = this.active.get(runId);
     if (!active) return;
