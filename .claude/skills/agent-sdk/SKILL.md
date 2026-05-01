@@ -31,9 +31,13 @@ const q = query({
 });
 
 for await (const message of q) {
-  forwardToParent(message);                  // NDJSON over stdout
+  // Wrap as AgentEvent and emit a WireMessage of type "event":
+  //   { type: "event", event: { kind: "sdk", message } }
+  forwardToParent(message);
 }
 ```
+
+> The `forwardToParent` helper is set by `src/worker/stream.ts` (per `docs/01-architecture.md` module map; **TODO: align after phase-1/task-04**). It must wrap each `SDKMessage` as `{ kind: "sdk", message }` to satisfy `AgentEventSchema` in `src/protocol/messages.ts`, then encode a `{ type: "event", event }` `WireMessage` with `encodeWireMessage` and write the line to stdout.
 
 ### Locked-in option values
 
@@ -90,6 +94,8 @@ onStdinMessage((msg) => {
 });
 for await (const m of q) forwardToParent(m);
 ```
+
+> `onStdinMessage` is illustrative; the exact helper name and shape are set by `src/worker/stdio.ts` (**TODO: align after phase-1/task-04**). Whatever it's called, it must read NDJSON lines from stdin, run them through `parseWireMessage` from `src/protocol/messages.ts`, and only act on `{ ok: true }` results — never throw on a malformed line.
 
 After `interrupt()`, the loop will still drain a final `result` message — let it complete normally rather than `break`-ing early.
 
