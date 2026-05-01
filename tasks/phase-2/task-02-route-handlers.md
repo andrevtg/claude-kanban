@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-2 / task-02 — Route handlers
 
 ## Goal

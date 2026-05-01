@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-01 — phase-2/task-02 — add card/run REST route handlers with deps seam and integration tests
 - 2026-05-01 — phase-2/task-01 — bootstrap Next.js 15 + Tailwind 3 alongside worker, add supervisor singleton
 - 2026-05-01 — tasks/phase-2 — fix Next.js API name, add deps seam, resolve task-03 contradiction
 - 2026-05-01 — tasks/phase-2 — expand stubs into real task files
