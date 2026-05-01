@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-1 / task-05 — Supervisor
 
 ## Goal

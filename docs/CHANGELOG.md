@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-01 — phase-1/task-05 — add supervisor with one-active-run-per-card invariant and timeout escalation
 - 2026-05-01 — phase-1/task-04 — implement worker skeleton (stdio, git worktree, runAgent, entrypoint)
 - 2026-04-30 — docs/test-runner — ratify node --test, update task files
 - 2026-04-30 — phase-1/task-03 — implement JSON store with file/memory backends and contract tests
