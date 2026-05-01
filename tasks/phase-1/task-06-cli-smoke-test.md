@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-1 / task-06 — CLI smoke test
 
 ## Goal
@@ -19,6 +21,7 @@ pnpm cli run --repo <path> --base <branch> --prompt "<text>" [--model claude-opu
 ```
 
 Behavior:
+
 1. Loads `GlobalSettings`; if `apiKeyPath` not configured or `ANTHROPIC_API_KEY` not set, prints a clear setup message and exits 1.
 2. Creates a `Card` document for this CLI invocation (status `running`, persisted via the store).
 3. Calls `supervisor.startRun(card, settings)`.
@@ -46,8 +49,8 @@ Manual smoke test (documented in this task file's acceptance section, not automa
 
 A second smoke test with a write prompt:
 
-7. `pnpm cli run --repo "$PWD" --base main --prompt "Add a TODO.md at the repo root with three sample items."`
-8. After completion, the worktree directory contains the new file.
+1. `pnpm cli run --repo "$PWD" --base main --prompt "Add a TODO.md at the repo root with three sample items."`
+2. After completion, the worktree directory contains the new file.
 
 ## Out of scope
 

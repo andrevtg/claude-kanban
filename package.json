@@ -14,6 +14,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "cli": "tsx src/cli/index.ts",
     "test:protocol": "node --import tsx --test 'src/protocol/*.test.ts'",
     "test:store": "node --import tsx --test 'src/lib/store/*.test.ts'",
     "test:worker": "node --import tsx --test 'src/worker/*.test.ts'",
