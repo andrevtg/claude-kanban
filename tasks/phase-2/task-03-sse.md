@@ -56,7 +56,13 @@ Implementation outline:
      listener that enqueues `encodeDone(exitCode)` and then closes the
      controller.
    - Starts a `setInterval` heartbeat every 15s.
-2. `cancel()` (called when the client disconnects, signaled via
+2. After replay, if the run is no longer active in the supervisor (i.e.
+   no `run-event`/`run-done` listener will fire because the run already
+   terminated), emit `encodeDone(exitCode)` from the persisted run state
+   and close the controller. Use the supervisor's active-runs map (or
+   query the store for the run's exitCode) to decide. Do not leave the
+   stream open indefinitely on a finished run.
+3. `cancel()` (called when the client disconnects, signaled via
    `signal.aborted`): clears the heartbeat, removes both listeners,
    resolves any pending iteration. Worker keeps running — disconnecting
    from SSE never cancels the run (per architecture failure-mode table).
@@ -106,9 +112,3 @@ No UI tests. No real network.
 - Backpressure / slow-consumer handling. v1 trusts that an `EventSource`
   on `localhost` keeps up.
 - Multiplexing multiple runs on one connection. One stream per run id.
-- Re-broadcasting historical runs that have already ended. The replay
-  works for those, but there are no live frames after replay; the
-  stream will close immediately on the existing `run-done` event (or
-  immediately if no `run-done` is ever emitted because the run is long
-  finished — handle this explicitly: if `store` knows the run ended,
-  emit `done` after replay and close).

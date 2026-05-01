@@ -59,6 +59,27 @@ mapping store/supervisor errors to HTTP status codes.
   `UnknownRunError` → `404`. `202 Accepted` on success — actual PR
   creation is async (phase-4 wires the worker side).
 
+### `src/app/api/_lib/deps.ts` (new)
+
+Small dependency-injection seam so route handlers are testable under
+`node --test` without a module-mocking framework:
+
+```ts
+let depsImpl: () => { supervisor: Supervisor; store: Store } = () => ({
+  supervisor: getSupervisor(),
+  store: getStore(),
+});
+export const getDeps = () => depsImpl();
+/** @internal — for tests only */
+export const setDeps = (impl: typeof depsImpl) => { depsImpl = impl; };
+```
+
+All route handlers obtain their `supervisor` and `store` via `getDeps()`.
+Tests set fakes via `setDeps()` in a `beforeEach` and reset in `afterEach`.
+
+If `src/lib/store/` does not yet export a `getStore()` singleton accessor,
+add one alongside `getSupervisor()` in this task.
+
 ### Shared error handling
 
 A small helper (`src/app/api/_lib/respond.ts` or similar, kept inside
@@ -87,9 +108,9 @@ exports `GET/POST/...` so they can be imported and called with a `Request`)
 - `PATCH /api/cards/:id` updates only the allowed fields; an attempt to
   patch `id` or `createdAt` is rejected (or silently dropped — pick one
   and document it in the route file's top comment).
-- `POST /api/cards/:id/run` with a fake supervisor (inject via a test
-  hook on `getSupervisor`, or by passing a `Supervisor` constructor
-  override) returns `200` with a `RunHandle`.
+- `POST /api/cards/:id/run` with a fake supervisor injected via
+  `setDeps()` from `src/app/api/_lib/deps.ts` returns `200` with a
+  `RunHandle`.
 - A second `POST /api/cards/:id/run` while the first is active returns
   `409`.
 - `POST /api/cards/:id/runs/:runId/cancel` returns `202` regardless of

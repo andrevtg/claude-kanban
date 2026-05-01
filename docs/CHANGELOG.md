@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-01 — tasks/phase-2 — fix Next.js API name, add deps seam, resolve task-03 contradiction
 - 2026-05-01 — tasks/phase-2 — expand stubs into real task files
 - 2026-05-01 — phase-1/task-06 — add CLI smoke test entrypoint wiring store + supervisor + worker
 - 2026-05-01 — phase-1/task-05 — add supervisor with one-active-run-per-card invariant and timeout escalation

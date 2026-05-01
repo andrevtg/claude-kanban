@@ -39,7 +39,7 @@ the architecture.
 
 ### `next.config.ts`
 
-- `experimental.serverComponentsExternalPackages` (or its Next-15 successor)
+- `serverExternalPackages: ["@anthropic-ai/claude-agent-sdk"]` (this option moved out of `experimental` in Next 15)
   must include `@anthropic-ai/claude-agent-sdk` so Next never tries to
   bundle it. The SDK is reached only via the worker subprocess; the
   Next.js process imports nothing from `src/worker/`.
