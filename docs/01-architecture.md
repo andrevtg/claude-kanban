@@ -39,13 +39,16 @@ src/
 │   ├── git.ts              Worktree create/cleanup, diff, push
 │   ├── pr.ts               gh pr create wrapper
 │   └── stream.ts           Translates SDK messages → wire protocol
-└── protocol/               Shared types & encoders (imported by both sides)
-    ├── messages.ts         WireMessage union type
-    ├── card.ts             Card, Run, EventLogEntry types
-    └── settings.ts         GlobalSettings type
+├── protocol/               Shared types & encoders (imported by both sides)
+│   ├── messages.ts         WireMessage union type
+│   ├── card.ts             Card, Run, EventLogEntry types
+│   └── settings.ts         GlobalSettings type
+└── types/                  Ambient type declarations for non-TS assets (e.g. CSS imports). No runtime code.
 ```
 
 **Hard rule:** `src/worker/` and `src/lib/` must not import each other. `src/protocol/` is the only shared surface. Enforce with a lint rule in phase 5. These rules apply to `import type` as well as value imports; type-only coupling is still coupling.
+
+`src/types/` is ambient-only: any file may rely on its declarations (they're picked up by the compiler globally), but `src/types/` itself must not import from `src/worker/`, `src/lib/`, `src/app/`, or `src/components/`. Ambient declarations should be self-contained.
 
 ## Data model
 
@@ -142,6 +145,15 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 - **Concurrency limits across cards.** A laptop can run a handful of agents in parallel without help. If it becomes a problem, add a global semaphore to the supervisor.
 - **Persistent SSE reconnect via Last-Event-ID.** Phase 3 nice-to-have; basic replay-from-zero is fine for now.
 - **Auth.** Single-user tool on `localhost`. The `ANTHROPIC_API_KEY` lives in `~/.claude-kanban/settings.json` with file mode `0600`.
+
+## Dependencies
+
+The dependency surface is part of the architecture; new packages need a doc update before they land.
+
+- Runtime: `@anthropic-ai/claude-agent-sdk` (worker only), `next` 15, `react`/`react-dom` 19, `ulid`, `zod`.
+- Dev: `typescript`, `tsx`, `eslint` + `@typescript-eslint/*`, `prettier`, `tailwindcss` 3, `postcss`, `autoprefixer`, `eslint-config-next`, `@types/{node,react,react-dom}`.
+
+Phase-2/task-01 added Next.js 15 / React 19 / Tailwind 3.
 
 ## Testing
 

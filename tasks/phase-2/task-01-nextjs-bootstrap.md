@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-2 / task-01 — Next.js bootstrap
 
 ## Goal

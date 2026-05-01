@@ -10,6 +10,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "dev": "next dev",
+    "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -23,15 +25,24 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.123",
+    "next": "^15.5.15",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "ulid": "^3.0.2",
     "zod": "^4.4.1"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
+    "autoprefixer": "^10.5.0",
     "eslint": "^10.2.1",
+    "eslint-config-next": "^16.2.4",
+    "postcss": "^8.5.13",
     "prettier": "^3.8.3",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   }

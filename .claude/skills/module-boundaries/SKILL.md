@@ -1,11 +1,11 @@
 ---
 name: module-boundaries
-description: Use when adding a relative import in a file under src/worker/, src/lib/, or src/app/; when moving a file between those top-level src/ subdirectories; or when creating a new file in any of them. Encodes the import rules that keep the worker subprocess boundary intact. Do NOT trigger on imports from external npm packages, or on edits inside src/protocol/ itself.
+description: Use when adding a relative import in a file under src/worker/, src/lib/, src/app/, or src/types/; when moving a file between those top-level src/ subdirectories; or when creating a new file in any of them. Encodes the import rules that keep the worker subprocess boundary intact. Do NOT trigger on imports from external npm packages, or on edits inside src/protocol/ itself.
 ---
 
 # Module boundaries — claude-kanban
 
-`src/` is split into four top-level subdirectories with strict rules about which can import from which. This isn't a stylistic preference — the rules exist so the worker process boundary stays intact, which in turn is what makes the future port to Claude Managed Agents tractable.
+`src/` is split into five top-level subdirectories with strict rules about which can import from which. This isn't a stylistic preference — the rules exist so the worker process boundary stays intact, which in turn is what makes the future port to Claude Managed Agents tractable.
 
 This skill is the in-context reference for those rules. CLAUDE.md and `docs/01-architecture.md` have the canonical version; consult them only when changing a rule.
 
@@ -17,7 +17,8 @@ src/
 ├── components/  React components (server + client)
 ├── lib/         Server-side helpers: store, supervisor, sse, paths
 ├── worker/      Node subprocess that runs the SDK; spawned by lib/supervisor
-└── protocol/    Shared types, schemas, and parsers
+├── protocol/    Shared types, schemas, and parsers
+└── types/       Ambient type declarations for non-TS assets (no runtime code)
 ```
 
 ## The rules
@@ -43,6 +44,14 @@ Allowed for `src/lib/`: `src/protocol/`, external packages, Node built-ins.
 The web layer — both route handlers and entrypoints under `src/app/` and React components under `src/components/` — reaches the worker only through `src/lib/supervisor/`, which owns the spawn/IPC plumbing. Neither directory has any business knowing the worker exists as a module.
 
 Allowed for `src/app/` and `src/components/`: `src/lib/`, `src/protocol/`, external packages, React, Next.js.
+
+### 5. `src/types/**` is ambient-only and self-contained
+
+`src/types/` holds ambient declarations for non-TS assets (e.g. `declare module "*.css"`). It has no runtime code. The compiler picks these declarations up globally, so any file in the repo "uses" them implicitly — there is nothing to import from `src/types/` and nothing should.
+
+`src/types/` itself **must not import from `src/worker/`, `src/lib/`, `src/app/`, or `src/components/`**. It can technically import types from `src/protocol/`, but it shouldn't — ambient declarations should be self-contained. If an ambient module needs to reference a project type, that's a sign it isn't actually ambient and belongs somewhere else.
+
+Allowed for `src/types/`: nothing from this repo. External package types (`/// <reference types="..." />` style) are fine.
 
 ### Type-only imports count
 
