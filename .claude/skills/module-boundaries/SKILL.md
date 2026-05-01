@@ -9,7 +9,7 @@ description: Use when adding a relative import in a file under src/worker/, src/
 
 This skill is the in-context reference for those rules. CLAUDE.md and `docs/01-architecture.md` have the canonical version; consult them only when changing a rule.
 
-## The four directories
+## The src/ directories
 
 ```pre
 src/
@@ -142,17 +142,24 @@ import { startRun } from "../../../../worker/run"; // never
 
 Route handlers must not link against worker code. They reach the worker via the supervisor.
 
-### GOOD — app goes through the supervisor
+### GOOD — app goes through the supervisor via `getDeps()`
 
 ```ts
 // src/app/api/cards/[id]/run/route.ts
-import { Supervisor } from "@/lib/supervisor";
+import { getDeps } from "../../../_lib/deps.js";
 
-// Supervisor is constructed once at app startup; route handlers reuse it.
-await supervisor.startRun(card, settings);
+const { store, supervisor } = getDeps();
+const card = await store.getCard(id);
+const handle = await supervisor.startRun(card, settings);
 ```
 
-The supervisor encapsulates the spawn-and-IPC details; the route handler stays oblivious to the worker as a module.
+The supervisor encapsulates the spawn-and-IPC details; the route handler stays oblivious to the worker as a module. See the next subsection for why route handlers always go through `getDeps()` instead of importing the singleton directly.
+
+### Route handlers use the `getDeps()` seam, not the singleton
+
+`src/app/api/_lib/deps.ts` exports `getDeps()`, which returns `{ supervisor, store }`. In production it resolves to the long-lived `Supervisor` and `fileStore()` from `src/lib/supervisor/instance.ts`. Tests swap in fakes via `setDeps(impl)` and reset with `resetDeps()` in `afterEach`. **Every route handler in `src/app/api/**` must call `getDeps()` rather than importing `getSupervisor()` / `getStore()` from `instance.ts` directly** — otherwise the test seam is bypassed and integration tests are forced to mock ESM modules.
+
+`src/app/api/_lib/` (note the underscore) is a private helpers folder for route handlers only: `deps.ts`, `respond.ts` (response shape + `withErrorHandling`), and `schemas.ts` (HTTP body Zod schemas, distinct from `src/protocol/` which describes the wire and on-disk shapes). It is **not** a new top-level boundary — the `src/app/` rules above apply unchanged. Don't import `_lib/` from outside `src/app/api/`; if a helper is needed elsewhere, it belongs in `src/lib/` or `src/protocol/`.
 
 ## What this skill does NOT cover
 

@@ -6,7 +6,7 @@ Modal/drawer for creating and editing cards. Form fields: title, prompt, repo pa
 
 ## task-02 — DnD columns
 
-`@dnd-kit/core` + `@dnd-kit/sortable`. Five columns matching `CardStatus`. Drag updates the card's status via `PATCH`. Dragging into "running" triggers `POST /run`.
+`@dnd-kit/core` + `@dnd-kit/sortable`. Six columns matching `CardStatus` (`backlog`, `ready`, `running`, `review`, `done`, `failed`). Drag updates the card's status via `PATCH`. Dragging into "running" triggers `POST /run`.
 
 ## task-03 — Settings page
 

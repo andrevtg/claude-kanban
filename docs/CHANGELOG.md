@@ -7,11 +7,14 @@ One line per completed task. Newest at top.
 -->
 
 - 2026-05-01 — phase-2/task-04 — render single demo card with run button and live SSE event log
+- 2026-05-01 — fix — suppress hydration warning on <html> for browser-extension attrs
 - 2026-05-01 — phase-2/task-03 — add SSE encoders, run-stream replay-then-tail, and events route
+- 2026-05-01 — fix — make /api/* routes load under next dev
 - 2026-05-01 — phase-2/task-02 — add card/run REST route handlers with deps seam and integration tests
 - 2026-05-01 — phase-2/task-01 — bootstrap Next.js 15 + Tailwind 3 alongside worker, add supervisor singleton
 - 2026-05-01 — tasks/phase-2 — fix Next.js API name, add deps seam, resolve task-03 contradiction
 - 2026-05-01 — tasks/phase-2 — expand stubs into real task files
+- 2026-05-01 — docs — align skills + phase-3 README with phase-1 reality
 - 2026-05-01 — phase-1/task-06 — add CLI smoke test entrypoint wiring store + supervisor + worker
 - 2026-05-01 — phase-1/task-05 — add supervisor with one-active-run-per-card invariant and timeout escalation
 - 2026-05-01 — phase-1/task-04 — implement worker skeleton (stdio, git worktree, runAgent, entrypoint)
