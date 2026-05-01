@@ -14,7 +14,7 @@ This skill is the in-context reference for those rules. CLAUDE.md and `docs/01-a
 ```pre
 src/
 ├── app/         Next.js App Router (server + client)
-├── components/  React components (treated as part of app/ for these rules)
+├── components/  React components (server + client)
 ├── lib/         Server-side helpers: store, supervisor, sse, paths
 ├── worker/      Node subprocess that runs the SDK; spawned by lib/supervisor
 └── protocol/    Shared types, schemas, and parsers
@@ -38,9 +38,9 @@ Allowed for `src/worker/`: `src/protocol/`, external packages, Node built-ins.
 
 Allowed for `src/lib/`: `src/protocol/`, external packages, Node built-ins.
 
-### 4. `src/app/**` may import from `src/lib/**` and `src/protocol/**`, never from `src/worker/**`
+### 4. `src/app/**` and `src/components/**` may import from `src/lib/**` and `src/protocol/**`, never from `src/worker/**`
 
-The web layer reaches the worker only through `src/lib/supervisor/`, which owns the spawn/IPC plumbing. Route handlers and React components have no business knowing the worker exists as a module.
+The web layer — both route handlers and entrypoints under `src/app/` and React components under `src/components/` — reaches the worker only through `src/lib/supervisor/`, which owns the spawn/IPC plumbing. Neither directory has any business knowing the worker exists as a module.
 
 Allowed for `src/app/` and `src/components/`: `src/lib/`, `src/protocol/`, external packages, React, Next.js.
 
