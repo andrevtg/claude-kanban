@@ -56,12 +56,13 @@ A blank line after it, then the existing heading. CLAUDE.md specifies first-line
 Open `docs/CHANGELOG.md`. Add **one** line at the top of the entry list (newest at top), in the exact format from the file's comment header:
 
 ```pre
-- YYYY-MM-DD — phase-N/task-NN — short description (commit-sha-short)
+- YYYY-MM-DD — phase-N/task-NN — short description
 ```
 
 - `YYYY-MM-DD` is today's actual date — not the date in the task file, not a placeholder.
 - `short description` is one phrase, lowercased, imperative. Match the style of the existing line ("initial scaffold and planning docs").
-- Leave `commit-sha-short` literally as `commit-sha-short` for now — step 9 fills it in.
+
+No SHA. `git log` already has the SHAs; the changelog is for humans scanning what got done when. Duplicating the SHA adds friction (a second commit or an amend dance) without adding information.
 
 ### 8. Stage changes and propose a commit message
 
@@ -74,16 +75,6 @@ phase-N: <imperative summary>
 (See CLAUDE.md → Conventions → "Commit messages: `phase-N: <imperative summary>`. One commit per task is fine.")
 
 **Do not run `git commit` yourself unless the user explicitly delegated it.** Show the diff and the message; let the user run it. This keeps the user in the loop on what's actually entering history.
-
-### 9. After the commit, update the changelog SHA
-
-Once the user reports the commit landed (or you ran it with permission), get the short SHA:
-
-```pre
-git rev-parse --short HEAD
-```
-
-Edit the changelog line you added in step 7, replacing the literal `commit-sha-short` with the real value. Show the diff. The user can amend or make a follow-up commit per their preference; both are fine, since the changelog is informational.
 
 ## Failure modes
 
