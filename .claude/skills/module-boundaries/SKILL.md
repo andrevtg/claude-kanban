@@ -137,7 +137,10 @@ Route handlers must not link against worker code. They reach the worker via the 
 
 ```ts
 // src/app/api/cards/[id]/run/route.ts
-import { spawnRun } from "@/lib/supervisor";
+import { Supervisor } from "@/lib/supervisor";
+
+// Supervisor is constructed once at app startup; route handlers reuse it.
+await supervisor.startRun(card, settings);
 ```
 
 The supervisor encapsulates the spawn-and-IPC details; the route handler stays oblivious to the worker as a module.

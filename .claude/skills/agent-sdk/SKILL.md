@@ -17,27 +17,28 @@ There is exactly one shape for invoking the SDK in this repo. It lives in the wo
 
 ```ts
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { makeSender } from "./stdio.js";
+
+const send = makeSender();          // SendFn: writes one NDJSON WireMessage per call to stdout
 
 const q = query({
-  prompt: card.prompt,
+  prompt: init.prompt,
   options: {
-    cwd: worktreePath,                       // ~/.claude-kanban/work/<run_id>
-    model: "claude-opus-4-7",                // overridable per-card
-    allowedTools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
+    cwd: init.worktreePath,                  // ~/.claude-kanban/work/<run_id>
+    model: init.model,                       // "claude-opus-4-7" by default; per-card overridable
+    allowedTools: init.allowedTools,         // ["Read","Write","Edit","Glob","Grep","Bash"]
     permissionMode: "acceptEdits",
     settingSources: [],
-    maxTurns: 250,
+    maxTurns: init.maxTurns,                 // 250
   },
 });
 
 for await (const message of q) {
-  // Wrap as AgentEvent and emit a WireMessage of type "event":
-  //   { type: "event", event: { kind: "sdk", message } }
-  forwardToParent(message);
+  send({ type: "event", event: { kind: "sdk", message } });
 }
 ```
 
-> The `forwardToParent` helper is set by `src/worker/stream.ts` (per `docs/01-architecture.md` module map; **TODO: align after phase-1/task-04**). It must wrap each `SDKMessage` as `{ kind: "sdk", message }` to satisfy `AgentEventSchema` in `src/protocol/messages.ts`, then encode a `{ type: "event", event }` `WireMessage` with `encodeWireMessage` and write the line to stdout.
+> `makeSender` lives in `src/worker/stdio.ts`; it returns a `SendFn = (msg: WireMessage) => void` that JSON-encodes one `WireMessage` per stdout line via `encodeWireMessage`. The `{ kind: "sdk", message }` wrapping is what `AgentEventSchema` in `src/protocol/messages.ts` requires; the supervisor parses each line back through `parseWireMessage` and applies it to the JSON store.
 
 ### Locked-in option values
 
@@ -85,17 +86,27 @@ Anything else: deny via `canUseTool`, log a `permission_denied` event to the NDJ
 
 ## Cancellation
 
-`query()` returns a `Query` with `interrupt()`. Hold onto it; don't reassign or shadow it. Cancellation arrives as an NDJSON line on stdin (not Node IPC `process.send` — the worker uses stdio JSONL via the protocol module's helper):
+**Phase-1 reality:** cooperative cancel is *not* wired in the worker. `Supervisor.cancel(runId)` writes a `{type:"cancel"}` line to the worker's stdin (see `src/lib/supervisor/index.ts:cancel`), but `src/worker/run.ts` does not consume stdin during the SDK loop, so the cancel line is ignored. The supervisor's wall-clock escalation in `Supervisor.escalate` is what actually stops a run: cancel-line → wait `sigtermDelayMs` (5s default) → `SIGTERM` → wait `sigkillDelayMs` (5s default) → `SIGKILL`.
+
+That's acceptable for phase-1 timeout behavior but not for a user-facing Cancel button. Before phase-3 task-05 lands, wire `q.interrupt()` like this:
 
 ```ts
-const q = query({ prompt, options });
-onStdinMessage((msg) => {
-  if (msg.type === "cancel") q.interrupt();
-});
-for await (const m of q) forwardToParent(m);
+import { readWireMessages } from "./stdio.js";
+
+const q = query({ prompt: init.prompt, options: { ... } });
+
+// Run stdin reader concurrently with the SDK iterator.
+(async () => {
+  for await (const result of readWireMessages()) {
+    if (!result.ok) continue;                    // parse errors are non-fatal
+    if (result.value.type === "cancel") q.interrupt();
+  }
+})();
+
+for await (const m of q) send({ type: "event", event: { kind: "sdk", message: m } });
 ```
 
-> `onStdinMessage` is illustrative; the exact helper name and shape are set by `src/worker/stdio.ts` (**TODO: align after phase-1/task-04**). Whatever it's called, it must read NDJSON lines from stdin, run them through `parseWireMessage` from `src/protocol/messages.ts`, and only act on `{ ok: true }` results — never throw on a malformed line.
+`readWireMessages` already routes lines through `parseWireMessage` and yields `Result<WireMessage, ParseError>` — never throws on a malformed line.
 
 After `interrupt()`, the loop will still drain a final `result` message — let it complete normally rather than `break`-ing early.
 

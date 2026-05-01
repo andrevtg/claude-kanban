@@ -20,4 +20,6 @@ Click a card → side drawer with full event log, run history, and (later) diff/
 
 Cancel button on a running card. Calls `POST /api/cards/:id/runs/:runId/cancel`. Old worktree directories are GC'd on a stale-run sweep at app startup.
 
+> Note: phase-1 supervisor's `cancel(runId)` writes a `{type:"cancel"}` line to the worker's stdin, but the worker's SDK loop in `src/worker/run.ts` does not read stdin — only the SIGTERM/SIGKILL escalation in `Supervisor.escalate` actually stops the run. Before this UI lands, wire `q.interrupt()` in `src/worker/run.ts` (consume `readWireMessages` concurrently with the SDK iterator) so Cancel feels responsive instead of waiting out the 5+5s escalation.
+
 **Phase-3 done when:** Multi-card kanban with persistent state. Drag-to-run, cancel, settings.
