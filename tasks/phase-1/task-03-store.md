@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-1 / task-03 — JSON store
 
 ## Goal
@@ -12,11 +14,13 @@ Implement the persistence layer over `~/.claude-kanban/`. Only Next.js code (and
 ## Outputs
 
 ### `src/lib/paths.ts`
+
 - `claudeKanbanDir()` returns `~/.claude-kanban/` (respects `$CLAUDE_KANBAN_HOME` if set, useful for tests).
 - `cardFile(id)`, `runDir(id)`, `runLog(id)`, `settingsFile()` helpers.
 - `ensureDirs()` — idempotent mkdir for the four subdirs.
 
 ### `src/lib/store/index.ts`
+
 A small interface with one in-memory implementation (for tests) and one file-backed implementation:
 
 ```ts
