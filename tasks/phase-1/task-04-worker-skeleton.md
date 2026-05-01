@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-1 / task-04 — Worker skeleton
 
 ## Goal
@@ -19,23 +21,27 @@ Cancellation, PR flow, and diff capture are **not** in this task — they're tas
 ## Outputs
 
 ### `src/worker/stdio.ts`
+
 - Async generator that yields parsed `WireMessage`s from stdin (newline-delimited JSON).
 - `send(msg: WireMessage)` writes a line to stdout, flushing if needed.
 - Treats stdin EOF as an implicit cancel signal.
 
 ### `src/worker/git.ts`
+
 - `createWorktree(repoPath, baseBranch, runId): Promise<{ worktreePath, branchName }>`.
   - Branch name: `claude-kanban/<runId>`.
   - Throws a typed error if the repo has uncommitted changes blocking the operation, or if the base branch doesn't exist.
 - `cleanupWorktree(worktreePath)` — best-effort, logs on failure but doesn't throw.
 
 ### `src/worker/run.ts`
+
 - `runAgent(init: InitPayload, send: SendFn): Promise<{ exitCode }>`.
 - Constructs `query()` options from init payload + global settings.
 - Iterates the async generator, wraps each `SDKMessage` in an `event` `WireMessage`, and calls `send`.
 - Handles SDK errors by emitting an `error` message and returning a non-zero exit code.
 
 ### `src/worker/index.ts`
+
 - Glue: read init, run, cleanup, exit.
 - Process exit codes: `0` success, `1` SDK error, `2` git error, `3` protocol/init error.
 

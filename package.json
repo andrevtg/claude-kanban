@@ -16,7 +16,8 @@
     "format:check": "prettier --check .",
     "test:protocol": "node --import tsx --test 'src/protocol/*.test.ts'",
     "test:store": "node --import tsx --test 'src/lib/store/*.test.ts'",
-    "test": "node --import tsx --test 'src/protocol/*.test.ts' 'src/lib/store/*.test.ts'"
+    "test:worker": "node --import tsx --test 'src/worker/*.test.ts'",
+    "test": "node --import tsx --test 'src/protocol/*.test.ts' 'src/lib/store/*.test.ts' 'src/worker/*.test.ts'"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.123",
