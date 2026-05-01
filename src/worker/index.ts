@@ -3,24 +3,36 @@
 //   2. Send `ready`.
 //   3. Create the worktree via git.ts (exit 2 on git error).
 //   4. Run the SDK via run.ts; forward every SDK message as an `event`.
-//   5. Cleanup worktree, send `done`, exit with the appropriate code.
+//   5. Send `done`, exit with the appropriate code.
+//
+// Worktrees persist on disk after the run terminates (success or SDK error)
+// so they can be inspected and so the phase-4 PR flow can push the branch.
+// Cleanup is reserved for the createWorktree-failure path, future cancel
+// (task-05), and the deferred stale-run sweep.
 //
 // Cancellation, PR creation, and diff capture are out of scope (task-05 /
 // phase-4). This module is the smallest thing that proves the wire protocol
 // and the worktree boundary actually work.
 
-import { cleanupWorktree, createWorktree, GitError } from "./git.js";
-import { runAgent } from "./run.js";
+import type { Readable } from "node:stream";
+import { createWorktree, GitError } from "./git.js";
+import { runAgent as defaultRunAgent } from "./run.js";
 import { makeSender, readWireMessages, type SendFn } from "./stdio.js";
 import type { RunInitPayload, WireMessage } from "../protocol/messages.js";
+
+export type RunAgentFn = typeof defaultRunAgent;
 
 const EXIT_OK = 0;
 const EXIT_SDK_ERROR = 1;
 const EXIT_GIT_ERROR = 2;
 const EXIT_PROTOCOL_ERROR = 3;
 
-export async function main(send: SendFn = makeSender()): Promise<number> {
-  const init = await readInit(send);
+export async function main(
+  send: SendFn = makeSender(),
+  runAgent: RunAgentFn = defaultRunAgent,
+  input: Readable = process.stdin,
+): Promise<number> {
+  const init = await readInit(send, input);
   if (!init) return EXIT_PROTOCOL_ERROR;
 
   send({ type: "ready" });
@@ -58,25 +70,22 @@ export async function main(send: SendFn = makeSender()): Promise<number> {
 
   const { exitCode: agentExit } = await runAgent(init, send);
 
-  const cleanup = await cleanupWorktree(init.repoPath, worktreePath);
-  if (!cleanup.ok) {
-    send({
-      type: "event",
-      event: {
-        kind: "worker",
-        level: "warn",
-        message: `worktree cleanup failed: ${cleanup.error ?? "unknown"}`,
-      },
-    });
-  }
+  send({
+    type: "event",
+    event: {
+      kind: "worker",
+      level: "info",
+      message: `worktree retained at ${worktreePath} on branch ${init.branchName}`,
+    },
+  });
 
   const finalExit = agentExit === 0 ? EXIT_OK : EXIT_SDK_ERROR;
   send({ type: "done", exitCode: finalExit });
   return finalExit;
 }
 
-async function readInit(send: SendFn): Promise<RunInitPayload | null> {
-  for await (const result of readWireMessages()) {
+async function readInit(send: SendFn, input: Readable): Promise<RunInitPayload | null> {
+  for await (const result of readWireMessages(input)) {
     if (!result.ok) {
       send({
         type: "error",
