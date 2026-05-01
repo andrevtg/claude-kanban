@@ -142,3 +142,7 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 - **Concurrency limits across cards.** A laptop can run a handful of agents in parallel without help. If it becomes a problem, add a global semaphore to the supervisor.
 - **Persistent SSE reconnect via Last-Event-ID.** Phase 3 nice-to-have; basic replay-from-zero is fine for now.
 - **Auth.** Single-user tool on `localhost`. The `ANTHROPIC_API_KEY` lives in `~/.claude-kanban/settings.json` with file mode `0600`.
+
+## Testing
+
+Tests run with Node's built-in `node --test` runner via tsx (no Vitest); see [ADR-006](./03-decisions.md). Per CLAUDE.md hard rules, phase 1-3 covers the protocol, store, worker, and supervisor — not the UI layer.

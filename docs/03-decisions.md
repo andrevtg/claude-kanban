@@ -14,6 +14,7 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Decision.** Each run executes in its own Node subprocess, supervised by Next.js. Communication is NDJSON over stdio.
 
 **Alternatives considered.**
+
 - *In-process.* Simpler, but unacceptable failure-blast-radius; also breaks the analogy with Managed Agents that we want to maintain.
 - *Worker threads.* Shares memory and crash domain with the web server. Not enough isolation.
 - *External queue (BullMQ/Redis).* Overkill for single-user local. Re-evaluate if we ever go multi-user.
@@ -32,6 +33,7 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Decision.** Cards and settings as JSON documents under `~/.claude-kanban/`. Event logs as append-only NDJSON, one file per run.
 
 **Alternatives.**
+
 - *SQLite via Prisma.* Better querying, schema migrations. But adds a build step (Prisma client generation), and we don't have queries that benefit from SQL.
 - *Postgres.* Cloud-native, matches the team's stack. Wrong tool for a local single-user app.
 
@@ -51,6 +53,7 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Decision.** For each run, create a `git worktree` of the user's repo at a scratch path under `~/.claude-kanban/work/<run_id>/`. The agent's `cwd` is that worktree. On success, push the worktree's branch to `origin` (if configured) and open a PR via `gh`.
 
 **Alternatives.**
+
 - *Clone fresh per run.* Slow on big repos. Worktree shares the object store.
 - *Operate directly on the user's checkout.* Unacceptable; can corrupt user state.
 - *Detached working copy without git.* Loses the ability to produce a PR.
@@ -82,3 +85,23 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Decision.** Product name is "claude-kanban" internally. UI uses generic terms ("Agent," "Run") with a small "Powered by Claude" footer. No Claude Code logo or ASCII art mimicry.
 
 **Reference.** [Agent SDK overview — branding section](https://platform.claude.com/docs/en/agent-sdk/overview).
+
+---
+
+## ADR-006: Test runner is `node --test`, not Vitest
+
+**Date:** 2026-04-30
+**Status:** accepted (ratifying existing practice)
+
+**Context.** Phase-1 task files originally specified Vitest, but task-01's dependency list did not include it. Tasks 02 and 03 needed tests; Claude Code correctly followed the "no surprise dependencies" rule and used Node's built-in `node --test` runner with tsx for TypeScript loading.
+
+**Decision.** Standardize on `node --test` + tsx for all tests in this project. Do not add Vitest.
+
+**Alternatives.**
+
+- *Vitest.* Better DX (richer assertions, snapshots, watch mode), and has the better React integration story for eventual component tests. Adds a dev dependency.
+- *Jest.* Heavier, slower, worse TypeScript ergonomics. Not seriously considered.
+
+**Rationale.** Phase 1-3 tests are pure-module tests (protocol round-trips, store CRUD, supervisor invariants, NDJSON parsing). Vitest's ergonomic advantages are minimal at this scale. CLAUDE.md's hard rule on dependencies says additions need an architectural justification, and "ergonomics after the fact" doesn't clear that bar.
+
+**Trade-offs.** Less expressive matchers; clunkier watch mode; no built-in mocking. Acceptable for the test surface we have. Revisit if phase 2-3 component tests become unwieldy — at that point a Vitest ADR with a real ergonomic-limit citation would be a clean addition, not a retrofit.

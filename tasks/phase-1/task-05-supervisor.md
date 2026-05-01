@@ -44,7 +44,7 @@ interface RunHandle {
 
 ## Acceptance
 
-- Vitest tests with a **fake worker**: a small Node script that emits scripted NDJSON to stdout and exits with a chosen code. Covers:
+- `node --test` tests (run via tsx) with a **fake worker**: a small Node script that emits scripted NDJSON to stdout and exits with a chosen code. Covers:
   - happy path: ready → events → done.
   - malformed line: synthetic error emitted, supervisor stays alive.
   - timeout path: worker hangs; supervisor escalates SIGTERM → SIGKILL.
