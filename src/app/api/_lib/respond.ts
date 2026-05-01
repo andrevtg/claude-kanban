@@ -67,7 +67,7 @@ export async function withErrorHandling(
     if (e instanceof RunNotFoundError) return notFound("run_not_found");
     if (e instanceof UnknownRunError) return notFound("run_not_found");
     if (e instanceof DuplicateRunError) {
-      return conflict("run_active", { cardId: e.cardId });
+      return conflict("run_active", { cardId: e.cardId, runId: e.runId });
     }
     const message = e instanceof Error ? e.message : String(e);
     process.stderr.write(`[api] unhandled error: ${message}\n`);

@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-2 / task-04 — Event log on a single card
 
 ## Goal

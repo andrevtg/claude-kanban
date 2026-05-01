@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-01 — phase-2/task-04 — render single demo card with run button and live SSE event log
 - 2026-05-01 — phase-2/task-03 — add SSE encoders, run-stream replay-then-tail, and events route
 - 2026-05-01 — phase-2/task-02 — add card/run REST route handlers with deps seam and integration tests
 - 2026-05-01 — phase-2/task-01 — bootstrap Next.js 15 + Tailwind 3 alongside worker, add supervisor singleton

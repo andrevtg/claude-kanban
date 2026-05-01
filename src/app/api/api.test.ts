@@ -251,7 +251,7 @@ describe("api routes", () => {
     it("returns 409 when a run is already active for the card", async () => {
       const sup: SupervisorStub = {
         startRun: async () => {
-          throw new DuplicateRunError(card.id);
+          throw new DuplicateRunError(card.id, "run_existing");
         },
         cancel: async () => {},
         approvePr: async () => {},
@@ -259,9 +259,10 @@ describe("api routes", () => {
       setDeps(() => ({ store, supervisor: asSupervisor(sup) }));
       const res = await runPOST(jsonReq("POST", undefined), ctx({ id: card.id }));
       assert.equal(res.status, 409);
-      const body = (await res.json()) as { error: string; cardId: string };
+      const body = (await res.json()) as { error: string; cardId: string; runId: string };
       assert.equal(body.error, "run_active");
       assert.equal(body.cardId, card.id);
+      assert.equal(body.runId, "run_existing");
     });
 
     it("returns 404 when the card does not exist", async () => {

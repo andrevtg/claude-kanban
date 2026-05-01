@@ -60,7 +60,10 @@ export interface StartRunOptions {
 }
 
 export class DuplicateRunError extends Error {
-  constructor(public readonly cardId: string) {
+  constructor(
+    public readonly cardId: string,
+    public readonly runId: string,
+  ) {
     super(`run already active for card ${cardId}`);
     this.name = "DuplicateRunError";
   }
@@ -150,8 +153,9 @@ export class Supervisor extends EventEmitter {
     settings: GlobalSettings,
     opts: StartRunOptions = {},
   ): Promise<RunHandle> {
-    if (this.activeByCard.has(card.id)) {
-      throw new DuplicateRunError(card.id);
+    const existingRunId = this.activeByCard.get(card.id);
+    if (existingRunId !== undefined) {
+      throw new DuplicateRunError(card.id, existingRunId);
     }
 
     const runId = `run_${ulid()}`;
