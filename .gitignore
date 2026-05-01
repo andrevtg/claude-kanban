@@ -30,3 +30,7 @@ yarn-debug.log*
 
 # Test outputs
 coverage/
+
+# Vendored skills (hydrated via `npx skills install`; pinned in skills-lock.json)
+.agents/
+.claude/skills/claude-api
