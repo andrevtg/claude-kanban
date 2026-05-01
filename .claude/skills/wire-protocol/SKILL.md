@@ -17,14 +17,18 @@ Always declare the Zod schema first and derive the TypeScript type from it:
 
 ```ts
 export const RunSchema = z.object({
-  id: z.string(),
-  startedAt: z.string(),
-  endedAt: z.string().optional(),
+  id: z.string().min(1),
+  startedAt: z.string().min(1),
+  endedAt: z.string().min(1).optional(),
   exitCode: z.number().int().optional(),
-  // ...
+  branchName: z.string().min(1).optional(),
+  diffStat: DiffStatSchema.optional(),
+  prUrl: z.string().url().optional(),
 });
 export type Run = z.infer<typeof RunSchema>;
 ```
+
+`DiffStatSchema` lives in `src/protocol/messages.ts` because it's also embedded in the `diff_ready` wire message; `card.ts` imports it. Lift any shared sub-schema into the module that owns its primary use, then import where needed.
 
 Never declare a `type Run = { ... }` and a separate `RunSchema = z.object({ ... })` — they will drift. If you find a `type` declaration without a matching `z.infer`, that's a bug to fix, not a pattern to copy.
 
@@ -57,9 +61,20 @@ It must:
 
 - Return `{ ok: false, error: ParseError }` for: invalid JSON, schema mismatch, unknown `type`.
 - Never throw. Workers and supervisors run this on untrusted lines (NDJSON over stdio); a thrown error from a partial line crashes the wrong process.
-- Surface the underlying Zod error in `ParseError` so the parent process can log it to the run's NDJSON event log.
+- Surface the underlying error message in `ParseError.message` so the parent process can log it to the run's NDJSON event log.
 
-If you need to bubble up a different failure shape, extend `ParseError` — don't re-introduce throws.
+`Result` and `ParseError` are exported from `src/protocol/messages.ts`:
+
+```ts
+export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
+
+export type ParseError = {
+  kind: "invalid_json" | "schema_mismatch";
+  message: string;
+};
+```
+
+`kind: "invalid_json"` covers `JSON.parse` failures; `kind: "schema_mismatch"` covers everything Zod rejects (unknown `type`, missing fields, wrong types). If you need to bubble up a different failure shape, extend the `kind` union — don't re-introduce throws.
 
 ### 4. The protocol is intentionally narrow
 
