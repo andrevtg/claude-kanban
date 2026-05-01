@@ -5,7 +5,7 @@
 // Dev-only path for now: spawns the worker via `node --import tsx
 // src/worker/index.ts`. A production build path lands in phase-5.
 
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { fileStore, type Store } from "../store/index.js";
 import { Supervisor } from "./index.js";
 
@@ -16,8 +16,11 @@ export function getSupervisor(): Supervisor {
   if (supervisor) return supervisor;
   store = fileStore();
   // TODO(phase-5): swap to a compiled worker entrypoint when running under
-  // `next start`. For now we always go through tsx.
-  const workerEntry = fileURLToPath(new URL("../../worker/index.ts", import.meta.url));
+  // `next start`. For now we always go through tsx. Resolved from cwd
+  // because Next.js's webpack polyfills `URL` in the server bundle, which
+  // breaks `fileURLToPath(new URL(..., import.meta.url))` — Node's native
+  // check rejects the polyfilled URL instance.
+  const workerEntry = resolve(process.cwd(), "src/worker/index.ts");
   supervisor = new Supervisor({
     store,
     workerEntry,
