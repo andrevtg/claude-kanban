@@ -1,25 +1,23 @@
-# Phase 3 — Stubs
+# Phase 3 — Multi-card kanban
 
-## task-01 — Card CRUD UI
+Phase 3 turns the phase-2 single-card demo into a real kanban with
+persistent state, drag-to-run, cancel, and a settings page.
 
-Modal/drawer for creating and editing cards. Form fields: title, prompt, repo path, base branch, model override.
+See the individual task files for goals, outputs, acceptance, and
+out-of-scope:
 
-## task-02 — DnD columns
+- `task-01-card-crud.md` — card list + create/edit/delete UI
+- `task-02-dnd-columns.md` — six-column board with `@dnd-kit` and
+  drop-into-running triggers a run
+- `task-03-settings-page.md` — `/settings` for `GlobalSettings`
+- `task-04-card-detail-drawer.md` — drawer with run history and per-run
+  event log
+- `task-05-cancel-and-cleanup.md` — cooperative cancel via
+  `query.interrupt()`, Cancel button, stale-run sweep on startup
 
-`@dnd-kit/core` + `@dnd-kit/sortable`. Six columns matching `CardStatus` (`backlog`, `ready`, `running`, `review`, `done`, `failed`). Drag updates the card's status via `PATCH`. Dragging into "running" triggers `POST /run`.
+**Phase-3 done when:** Multi-card kanban with persistent state.
+Drag-to-run, cancel, settings.
 
-## task-03 — Settings page
-
-Edit `GlobalSettings`. API key entry (write to a 0600 file under `~/.claude-kanban/`). Default repo, default model, bash allowlist editor.
-
-## task-04 — Card detail drawer
-
-Click a card → side drawer with full event log, run history, and (later) diff/PR.
-
-## task-05 — Cancel and cleanup
-
-Cancel button on a running card. Calls `POST /api/cards/:id/runs/:runId/cancel`. Old worktree directories are GC'd on a stale-run sweep at app startup.
-
-> Note: phase-1 supervisor's `cancel(runId)` writes a `{type:"cancel"}` line to the worker's stdin, but the worker's SDK loop in `src/worker/run.ts` does not read stdin — only the SIGTERM/SIGKILL escalation in `Supervisor.escalate` actually stops the run. Before this UI lands, wire `q.interrupt()` in `src/worker/run.ts` (consume `readWireMessages` concurrently with the SDK iterator) so Cancel feels responsive instead of waiting out the 5+5s escalation.
-
-**Phase-3 done when:** Multi-card kanban with persistent state. Drag-to-run, cancel, settings.
+Phase 3 explicitly does NOT do: PR creation, `gh` integration, hooks,
+skills loading, MCP servers, persistence migrations. Those are phase 4
+and beyond.
