@@ -18,6 +18,8 @@ const HAPPY = join(FIXTURES, "happy-worker.mjs");
 const MALFORMED = join(FIXTURES, "malformed-worker.mjs");
 const HANG = join(FIXTURES, "hang-worker.mjs");
 const DIFF = join(FIXTURES, "diff-worker.mjs");
+const PR_OK = join(FIXTURES, "pr-worker.mjs");
+const PR_ERR = join(FIXTURES, "pr-error-worker.mjs");
 
 const settings: GlobalSettings = {
   apiKeyPath: "/dev/null",
@@ -170,6 +172,38 @@ describe("Supervisor", () => {
       const updated = await store.getCard(card.id);
       const run = updated?.runs.find((r) => r.id === handle.runId);
       assert.deepStrictEqual(run?.diffStat, { files: 3, insertions: 7, deletions: 2 });
+    });
+  });
+
+  it("persists prUrl when the worker emits pr_opened", async () => {
+    await withHome(async () => {
+      const sup = new Supervisor({ store, workerEntry: PR_OK });
+      const card = await makeCard(store);
+
+      const handle = await sup.startRun(card, settings);
+      await sup.waitForDone(handle.runId);
+
+      // updateRun is fire-and-forget; let it settle.
+      await new Promise((r) => setTimeout(r, 20));
+
+      const updated = await store.getCard(card.id);
+      const run = updated?.runs.find((r) => r.id === handle.runId);
+      assert.equal(run?.prUrl, "https://github.com/example/repo/pull/42");
+    });
+  });
+
+  it("does not persist prUrl on a PR-related error message", async () => {
+    await withHome(async () => {
+      const sup = new Supervisor({ store, workerEntry: PR_ERR });
+      const card = await makeCard(store);
+
+      const handle = await sup.startRun(card, settings);
+      await sup.waitForDone(handle.runId);
+      await new Promise((r) => setTimeout(r, 20));
+
+      const updated = await store.getCard(card.id);
+      const run = updated?.runs.find((r) => r.id === handle.runId);
+      assert.equal(run?.prUrl, undefined, "prUrl must remain unset on error");
     });
   });
 

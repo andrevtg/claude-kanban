@@ -7,7 +7,8 @@ import { mkdtemp, rm, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
-import type { Card, GlobalSettings } from "../../protocol/index.js";
+import type { Card, GlobalSettings, Run } from "../../protocol/index.js";
+import type { GhStatus } from "../../lib/gh/preflight.js";
 import { memoryStore, fileStore, type Store } from "../../lib/store/index.js";
 import {
   DuplicateRunError,
@@ -16,6 +17,7 @@ import {
   type Supervisor,
 } from "../../lib/supervisor/index.js";
 import { resetDeps, setDeps } from "./_lib/deps.js";
+import { GET as ghStatusGET } from "./gh/status/route.js";
 import { GET as cardsGET, POST as cardsPOST } from "./cards/route.js";
 import { PATCH as cardPATCH, DELETE as cardDELETE } from "./cards/[id]/route.js";
 import { POST as runPOST } from "./cards/[id]/run/route.js";
@@ -23,6 +25,9 @@ import { POST as cancelPOST } from "./cards/[id]/runs/[runId]/cancel/route.js";
 import { POST as approvePrPOST } from "./cards/[id]/runs/[runId]/approve-pr/route.js";
 
 type SupervisorStub = Pick<Supervisor, "startRun" | "cancel" | "approvePr">;
+
+const okGh = (): Promise<GhStatus> =>
+  Promise.resolve({ state: "ok", version: "2.55.0", account: "test" });
 
 function asSupervisor(stub: SupervisorStub): Supervisor {
   // reason: tests only exercise the three methods listed in SupervisorStub.
@@ -74,7 +79,7 @@ describe("api routes", () => {
   describe("POST /api/cards", () => {
     beforeEach(() => {
       store = memoryStore();
-      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub) }));
+      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
     });
 
     it("creates a card with a valid body", async () => {
@@ -100,7 +105,7 @@ describe("api routes", () => {
     it("creates a card on disk under CLAUDE_KANBAN_HOME", async () => {
       await withHome(async () => {
         const fileBacked = fileStore();
-        setDeps(() => ({ store: fileBacked, supervisor: asSupervisor({} as SupervisorStub) }));
+          setDeps(() => ({ store: fileBacked, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
         const res = await cardsPOST(
           jsonReq("POST", {
             title: "fs",
@@ -143,7 +148,7 @@ describe("api routes", () => {
   describe("GET /api/cards", () => {
     beforeEach(() => {
       store = memoryStore();
-      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub) }));
+      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
     });
 
     it("lists cards", async () => {
@@ -160,7 +165,7 @@ describe("api routes", () => {
     let card: Card;
     beforeEach(async () => {
       store = memoryStore();
-      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub) }));
+      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
       card = await store.createCard({
         title: "t",
         prompt: "p",
@@ -196,7 +201,7 @@ describe("api routes", () => {
   describe("DELETE /api/cards/:id", () => {
     beforeEach(() => {
       store = memoryStore();
-      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub) }));
+      setDeps(() => ({ store, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
     });
 
     it("returns 204 on success and 404 if missing", async () => {
@@ -239,7 +244,7 @@ describe("api routes", () => {
         cancel: async () => {},
         approvePr: async () => {},
       };
-      setDeps(() => ({ store, supervisor: asSupervisor(sup) }));
+      setDeps(() => ({ store, supervisor: asSupervisor(sup), checkGh: okGh }));
 
       const res = await runPOST(jsonReq("POST", undefined), ctx({ id: card.id }));
       assert.equal(res.status, 200);
@@ -256,7 +261,7 @@ describe("api routes", () => {
         cancel: async () => {},
         approvePr: async () => {},
       };
-      setDeps(() => ({ store, supervisor: asSupervisor(sup) }));
+      setDeps(() => ({ store, supervisor: asSupervisor(sup), checkGh: okGh }));
       const res = await runPOST(jsonReq("POST", undefined), ctx({ id: card.id }));
       assert.equal(res.status, 409);
       const body = (await res.json()) as { error: string; cardId: string; runId: string };
@@ -275,6 +280,7 @@ describe("api routes", () => {
           cancel: async () => {},
           approvePr: async () => {},
         }),
+        checkGh: okGh,
       }));
       const res = await runPOST(jsonReq("POST", undefined), ctx({ id: "card_missing" }));
       assert.equal(res.status, 404);
@@ -297,6 +303,7 @@ describe("api routes", () => {
           cancel: async () => {},
           approvePr: async () => {},
         }),
+        checkGh: okGh,
       }));
       const res = await runPOST(jsonReq("POST", undefined), ctx({ id: c.id }));
       assert.equal(res.status, 400);
@@ -323,6 +330,7 @@ describe("api routes", () => {
           },
           approvePr: async () => {},
         }),
+        checkGh: okGh,
       }));
       const res = await cancelPOST(
         jsonReq("POST", undefined),
@@ -334,68 +342,199 @@ describe("api routes", () => {
   });
 
   describe("POST /api/cards/:id/runs/:runId/approve-pr", () => {
-    beforeEach(() => {
+    let card: Card;
+    let approveCalls: number;
+    const baseRun: Run = {
+      id: "run_y",
+      startedAt: "2026-05-03T00:00:00.000Z",
+      endedAt: "2026-05-03T00:01:00.000Z",
+      exitCode: 0,
+      diffStat: { files: 1, insertions: 5, deletions: 2 },
+    };
+
+    async function seedRun(over: Partial<Run> = {}): Promise<void> {
+      await store.appendRun(card.id, { ...baseRun, ...over });
+    }
+
+    function defaultSup(): SupervisorStub {
+      return {
+        startRun: async () => {
+          throw new Error("nope");
+        },
+        cancel: async () => {},
+        approvePr: async () => {
+          approveCalls++;
+        },
+      };
+    }
+
+    beforeEach(async () => {
       store = memoryStore();
+      approveCalls = 0;
+      card = await store.createCard({
+        title: "t",
+        prompt: "p",
+        repoPath: "/r",
+        baseBranch: "main",
+      });
     });
 
     it("returns 202 on success", async () => {
-      let approveCalls = 0;
-      setDeps(() => ({
-        store,
-        supervisor: asSupervisor({
-          startRun: async () => {
-            throw new Error("nope");
-          },
-          cancel: async () => {},
-          approvePr: async () => {
-            approveCalls++;
-          },
-        }),
-      }));
+      await seedRun();
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
       const res = await approvePrPOST(
         jsonReq("POST", { title: "feat: x", body: "details" }),
-        ctx({ id: "card_x", runId: "run_y" }),
+        ctx({ id: card.id, runId: "run_y" }),
       );
       assert.equal(res.status, 202);
       assert.equal(approveCalls, 1);
     });
 
-    it("returns 404 when the run is unknown", async () => {
-      setDeps(() => ({
-        store,
-        supervisor: asSupervisor({
-          startRun: async () => {
-            throw new Error("nope");
-          },
-          cancel: async () => {},
-          approvePr: async () => {
-            throw new UnknownRunError("run_y");
-          },
-        }),
-      }));
+    it("returns 404 when the card does not exist", async () => {
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
       const res = await approvePrPOST(
         jsonReq("POST", { title: "t", body: "b" }),
-        ctx({ id: "card_x", runId: "run_y" }),
+        ctx({ id: "card_missing", runId: "run_y" }),
+      );
+      assert.equal(res.status, 404);
+    });
+
+    it("returns 404 when the run does not exist", async () => {
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_missing" }),
+      );
+      assert.equal(res.status, 404);
+    });
+
+    it("returns 409 already_open when prUrl is already set", async () => {
+      await seedRun({ prUrl: "https://github.com/o/r/pull/9" });
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_y" }),
+      );
+      assert.equal(res.status, 409);
+      const body = (await res.json()) as { error: string; prUrl: string };
+      assert.equal(body.error, "already_open");
+      assert.equal(body.prUrl, "https://github.com/o/r/pull/9");
+      assert.equal(approveCalls, 0);
+    });
+
+    it("returns 409 no_diff when the run produced an empty diff", async () => {
+      await seedRun({ diffStat: { files: 0, insertions: 0, deletions: 0 } });
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_y" }),
+      );
+      assert.equal(res.status, 409);
+      const body = (await res.json()) as { error: string };
+      assert.equal(body.error, "no_diff");
+    });
+
+    it("returns 409 run_not_done when the run has not finished cleanly", async () => {
+      const partial: Partial<Run> = { exitCode: 1 };
+      await seedRun(partial);
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_y" }),
+      );
+      assert.equal(res.status, 409);
+      const body = (await res.json()) as { error: string };
+      assert.equal(body.error, "run_not_done");
+    });
+
+    it("returns 503 gh_unavailable when gh pre-flight reports missing", async () => {
+      await seedRun();
+      const missing = (): Promise<GhStatus> => Promise.resolve({ state: "missing" });
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: missing }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_y" }),
+      );
+      assert.equal(res.status, 503);
+      const body = (await res.json()) as { error: string; state: string };
+      assert.equal(body.error, "gh_unavailable");
+      assert.equal(body.state, "missing");
+      assert.equal(approveCalls, 0);
+    });
+
+    it("returns 404 when the supervisor reports an unknown run after pre-flight", async () => {
+      await seedRun();
+      const sup: SupervisorStub = {
+        startRun: async () => {
+          throw new Error("nope");
+        },
+        cancel: async () => {},
+        approvePr: async () => {
+          throw new UnknownRunError("run_y");
+        },
+      };
+      setDeps(() => ({ store, supervisor: asSupervisor(sup), checkGh: okGh }));
+      const res = await approvePrPOST(
+        jsonReq("POST", { title: "t", body: "b" }),
+        ctx({ id: card.id, runId: "run_y" }),
       );
       assert.equal(res.status, 404);
     });
 
     it("returns 400 when the body is malformed", async () => {
-      setDeps(() => ({
-        store,
-        supervisor: asSupervisor({
-          startRun: async () => {
-            throw new Error("nope");
-          },
-          cancel: async () => {},
-          approvePr: async () => {},
-        }),
-      }));
+      await seedRun();
+      setDeps(() => ({ store, supervisor: asSupervisor(defaultSup()), checkGh: okGh }));
       const res = await approvePrPOST(
         jsonReq("POST", { title: "" }),
-        ctx({ id: "card_x", runId: "run_y" }),
+        ctx({ id: card.id, runId: "run_y" }),
       );
       assert.equal(res.status, 400);
+    });
+  });
+
+  describe("GET /api/gh/status", () => {
+    beforeEach(() => {
+      store = memoryStore();
+    });
+
+    it("returns the GhStatus shape on ok", async () => {
+      setDeps(() => ({
+        store,
+        supervisor: asSupervisor({} as SupervisorStub),
+        checkGh: okGh,
+      }));
+      const res = await ghStatusGET();
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as GhStatus;
+      assert.equal(body.state, "ok");
+    });
+
+    it("returns missing when gh is not on PATH", async () => {
+      setDeps(() => ({
+        store,
+        supervisor: asSupervisor({} as SupervisorStub),
+        checkGh: () => Promise.resolve({ state: "missing" }),
+      }));
+      const res = await ghStatusGET();
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as GhStatus;
+      assert.equal(body.state, "missing");
+    });
+
+    it("returns unauthenticated with a message", async () => {
+      setDeps(() => ({
+        store,
+        supervisor: asSupervisor({} as SupervisorStub),
+        checkGh: () =>
+          Promise.resolve({ state: "unauthenticated", message: "run gh auth login" }),
+      }));
+      const res = await ghStatusGET();
+      assert.equal(res.status, 200);
+      const body = (await res.json()) as GhStatus;
+      assert.equal(body.state, "unauthenticated");
+      if (body.state === "unauthenticated") {
+        assert.match(body.message, /gh auth login/);
+      }
     });
   });
 });

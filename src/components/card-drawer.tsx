@@ -7,6 +7,7 @@ import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunLog } from "./run-log.js";
 import { RunDiff } from "./run-diff.js";
 import { CancelButton } from "./cancel-button.js";
+import { PrAffordance } from "./pr-affordance.js";
 
 type RunHandleResponse = {
   runId: string;
@@ -27,6 +28,7 @@ type Props = {
   onEdited: (card: Card) => void;
   onDeleted: (id: string) => void;
   onRunStarted: (cardId: string, run: Run) => void;
+  onPrOpened?: (cardId: string, runId: string, url: string) => void;
 };
 
 type Mode = { kind: "view" } | { kind: "edit" } | { kind: "delete" };
@@ -38,6 +40,7 @@ export function CardDrawer({
   onEdited,
   onDeleted,
   onRunStarted,
+  onPrOpened,
 }: Props): ReactElement | null {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [pane, setPane] = useState<Pane>("log");
@@ -256,6 +259,16 @@ export function CardDrawer({
           <div className="grid grid-rows-[auto_1fr] overflow-hidden">
             {selectedRun ? (
               <>
+                {selectedRun.endedAt &&
+                selectedRun.exitCode === 0 &&
+                selectedRun.diffStat &&
+                selectedRun.diffStat.files > 0 ? (
+                  <PrAffordance
+                    card={card}
+                    run={selectedRun}
+                    onPrOpened={(cardId, runId, url) => onPrOpened?.(cardId, runId, url)}
+                  />
+                ) : null}
                 <div className="flex border-b border-slate-200 bg-slate-50 px-4">
                   <PaneTab active={pane === "log"} onClick={() => setPane("log")}>
                     Events

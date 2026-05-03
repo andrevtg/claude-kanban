@@ -4,17 +4,22 @@
 // indirection out of the handlers avoids ESM module mocking entirely.
 
 import { getStore, getSupervisor } from "../../../lib/supervisor/instance.js";
+import { checkGh as defaultCheckGh, type GhStatus } from "../../../lib/gh/preflight.js";
 import type { Store } from "../../../lib/store/index.js";
 import type { Supervisor } from "../../../lib/supervisor/index.js";
+
+export type CheckGhFn = () => Promise<GhStatus>;
 
 export type RouteDeps = {
   supervisor: Supervisor;
   store: Store;
+  checkGh: CheckGhFn;
 };
 
 let depsImpl: () => RouteDeps = () => ({
   supervisor: getSupervisor(),
   store: getStore(),
+  checkGh: () => defaultCheckGh(),
 });
 
 export function getDeps(): RouteDeps {
@@ -31,5 +36,6 @@ export function resetDeps(): void {
   depsImpl = () => ({
     supervisor: getSupervisor(),
     store: getStore(),
+    checkGh: () => defaultCheckGh(),
   });
 }

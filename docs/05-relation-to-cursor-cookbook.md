@@ -48,7 +48,7 @@ A port to Managed Agents is the planned v2; phase-5/task-04 produces the handoff
 |---|---|
 | `cloud: { autoCreatePR: true }` flag on agent creation; the runtime owns the PR step. | Worker explicitly runs `git push` + `gh pr create` after a successful run, gated on user approval from the card UI. |
 
-**Why.** The Agent SDK has no equivalent flag because the SDK doesn't own the cloud sandbox or the git remote. Keeping PR creation as a separate, user-approved step is also a feature, not a bug — it gives the human a review gate before anything hits a remote. (Phase 4 implements this.)
+**Why.** The Agent SDK has no equivalent flag because the SDK doesn't own the cloud sandbox or the git remote. Keeping PR creation as a separate, user-approved step is also a feature, not a bug — it gives the human a review gate before anything hits a remote. (Phase 4 implements this.) Local mode hard-requires `gh` for the push + PR step (see ADR-010); Managed Agents bundles git auth into the sandbox and exposes PR creation as a tool/MCP call instead.
 
 ### Persistence: JSON files, not the platform's run store
 

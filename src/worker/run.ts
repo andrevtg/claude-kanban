@@ -1,12 +1,12 @@
 // Drives a single Agent SDK run. Exact option shape is locked in by the
 // agent-sdk skill / docs/02-agent-sdk-usage.md — change those first.
 //
-// Cooperative cancellation: a stdin reader runs concurrently with the SDK
-// iterator and calls q.interrupt() on a `{ type: "cancel" }` wire message.
-// The two coroutines race only on the cancel side: we never short-circuit
-// the SDK loop ourselves — q.interrupt() lets the SDK emit its terminal
-// `result` message and the for-await drains naturally. Re-entrant cancels
-// are no-ops.
+// Cooperative cancellation: runAgent does NOT read stdin itself. The worker
+// (src/worker/index.ts) owns the single stdin reader so that the post-SDK
+// approval window (phase-4/task-02) and the cancel signal can cohabit on
+// the same stream. Callers register a cancel hook via the AbortSignal in
+// `deps.cancel`. When that signal aborts, runAgent calls q.interrupt() and
+// lets the SDK loop drain naturally to a terminal `result` message.
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { Readable } from "node:stream";
@@ -20,8 +20,14 @@ export interface RunResult {
 export interface RunAgentDeps {
   // Injection seam for tests; real callers omit and get the real SDK.
   queryFn?: typeof query;
+  // External cancel signal owned by the worker. When aborted, runAgent
+  // calls q.interrupt() once. Re-aborts are no-ops.
+  cancel?: AbortSignal;
 }
 
+// Legacy signature kept for tests that pass a stdin Readable: when `deps.cancel`
+// is absent and `input` is provided, runAgent installs an internal cancel
+// reader for backwards compat.
 export async function runAgent(
   init: RunInitPayload,
   send: SendFn,
@@ -29,7 +35,32 @@ export async function runAgent(
   deps: RunAgentDeps = {},
 ): Promise<RunResult> {
   const queryImpl = deps.queryFn ?? query;
-  let cancelRequested = false;
+  let cancelled = false;
+
+  const triggerCancel = async (q: ReturnType<typeof query>): Promise<void> => {
+    if (cancelled) return;
+    cancelled = true;
+    send({
+      type: "event",
+      event: {
+        kind: "worker",
+        level: "info",
+        message: "cancelling: interrupt requested",
+      },
+    });
+    try {
+      await q.interrupt();
+    } catch (e) {
+      send({
+        type: "event",
+        event: {
+          kind: "worker",
+          level: "warn",
+          message: `interrupt failed: ${e instanceof Error ? e.message : String(e)}`,
+        },
+      });
+    }
+  };
 
   try {
     const q = queryImpl({
@@ -44,46 +75,33 @@ export async function runAgent(
       },
     });
 
-    const cancelLoop = (async () => {
-      for await (const result of readWireMessages(input)) {
-        if (!result.ok) continue;
-        if (result.value.type !== "cancel") continue;
-        if (cancelRequested) continue;
-        cancelRequested = true;
+    if (deps.cancel) {
+      // Worker-owned cancel: a single AbortSignal wired in by index.ts.
+      if (deps.cancel.aborted) {
+        void triggerCancel(q);
+      } else {
+        deps.cancel.addEventListener("abort", () => void triggerCancel(q), { once: true });
+      }
+    } else {
+      // Legacy in-process cancel reader (used by run.cancel.test.ts).
+      const cancelLoop = (async () => {
+        for await (const result of readWireMessages(input)) {
+          if (!result.ok) continue;
+          if (result.value.type !== "cancel") continue;
+          await triggerCancel(q);
+        }
+      })();
+      cancelLoop.catch((e: unknown) => {
         send({
           type: "event",
           event: {
             kind: "worker",
-            level: "info",
-            message: "cancelling: interrupt requested",
+            level: "warn",
+            message: `cancel reader error: ${e instanceof Error ? e.message : String(e)}`,
           },
         });
-        try {
-          await q.interrupt();
-        } catch (e) {
-          send({
-            type: "event",
-            event: {
-              kind: "worker",
-              level: "warn",
-              message: `interrupt failed: ${e instanceof Error ? e.message : String(e)}`,
-            },
-          });
-        }
-      }
-    })();
-    // Defensive: stdin reader should never throw, but if it does, surface it
-    // and keep the SDK loop running so the run can still terminate cleanly.
-    cancelLoop.catch((e: unknown) => {
-      send({
-        type: "event",
-        event: {
-          kind: "worker",
-          level: "warn",
-          message: `cancel reader error: ${e instanceof Error ? e.message : String(e)}`,
-        },
       });
-    });
+    }
 
     for await (const message of q) {
       send({ type: "event", event: { kind: "sdk", message } });

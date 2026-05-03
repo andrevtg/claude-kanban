@@ -163,3 +163,23 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Trade-offs.** Tailwind v4's CSS-first config is genuinely different from v3's JS config; future contributors need to know this. v4 is also younger; expect occasional ecosystem rough edges (PostCSS plugins, IDE tooling). Net positive given the unblock. The codemod left a self-referential `--font-sans` line in `globals.css` assuming next/font integration; this project does not use next/font, so the line was removed and v4's default sans stack is accepted as the project's font.
 
 **Follow-up.** A separate prompt initializes shadcn after this upgrade lands. ADR-010 will document that decision if it warrants one (it might not — shadcn introduction may be straightforward enough that the architecture-doc dependency note suffices).
+
+---
+
+## ADR-010: `gh` CLI as a hard dependency for PR creation
+
+**Date:** 2026-05-03
+**Status:** accepted
+
+**Context.** The PR step needs to push a branch and open a pull request. Options: shell out to `gh`, call GitHub's REST API directly via a fetch wrapper, or abstract over hosts (GitHub, GitLab, Bitbucket).
+
+**Decision.** Hard-require `gh`. The UI pre-flights `gh --version` and `gh auth status` and disables the Open PR button on either failure.
+
+**Alternatives considered.**
+
+- *Direct REST via PAT.* Forces us to ship a token-input flow and manage refresh. `gh` already owns that surface; piggybacking is cheaper than reimplementing.
+- *Multi-host abstraction.* Real value, real cost. v1 targets GitHub users; GitLab and Bitbucket land as a separate ADR if/when there's demand.
+
+**Local mode vs. Managed Agents.** Managed Agents bundles git auth into the sandbox; PR creation moves into a tool the agent calls (or the GitHub MCP server) rather than a worker-level wrapper around `gh`. The local-mode dependency on `gh` does not port forward.
+
+**Trade-offs.** Users without `gh` cannot open PRs from the UI; they can still run the agent and inspect the diff. The pre-flight surfaces this clearly so it's a visible disable, not a runtime crash.

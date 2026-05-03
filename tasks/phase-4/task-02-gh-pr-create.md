@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-4 / task-02 — `gh pr create` integration
 
 ## Goal

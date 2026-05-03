@@ -349,8 +349,23 @@ export class Supervisor extends EventEmitter {
           });
         return;
       }
+      case "pr_opened": {
+        const entry: EventLogEntry = {
+          timestamp: new Date().toISOString(),
+          message: msg,
+        };
+        this.dispatchEvent(active.runId, entry);
+        this.store
+          .updateRun(active.cardId, active.runId, { prUrl: msg.url })
+          .catch((e: unknown) => {
+            const errMsg = e instanceof Error ? e.message : String(e);
+            process.stderr.write(
+              `[${active.runId}] supervisor updateRun(prUrl) error: ${errMsg}\n`,
+            );
+          });
+        return;
+      }
       case "event":
-      case "pr_opened":
       case "error": {
         const entry: EventLogEntry = {
           timestamp: new Date().toISOString(),

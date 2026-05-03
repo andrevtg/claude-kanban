@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-03 — phase-4/task-02 — `gh pr create` integration: worker post-SDK approval window, `openPr` with PUSH_FAILED/PR_CREATE_FAILED/PR_URL_MISSING/GH_* error codes, `GET /api/gh/status` pre-flight, drawer Open PR composer, supervisor persists `prUrl` on `pr_opened`; ADR-010 records `gh` as a hard dependency
 - 2026-05-03 — phase-4/task-01 — capture git diff after successful runs; persist diffStat; serve patch via `GET /api/cards/:id/runs/:runId/diff`; render diff pane in card drawer; sweep stale patches alongside worktrees
 - 2026-05-03 — tasks/phase-4 — refine task-01 docs, task-02 worker lifecycle, task-04 confirmation invalidation
 - 2026-05-03 — tasks/phase-4 — expand stubs into real task files

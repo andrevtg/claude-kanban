@@ -140,7 +140,11 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 | Worker crashes mid-run | Supervisor marks run `failed`, includes last events, leaves worktree on disk for inspection. |
 | Browser disconnects from SSE | Worker keeps running; reconnecting replays the NDJSON log from offset 0, then tails. |
 | SDK returns `result` with `subtype !== "success"` | Run marked `failed`, error message surfaced on card. |
-| `gh` not installed | PR step disabled with a clear message; the card still shows the diff. |
+| `gh` not installed | Pre-flight returns `missing`; Open PR button disabled with install hint. |
+| `gh` not authenticated | Pre-flight returns `unauthenticated`; Open PR disabled with `gh auth login` hint. |
+| `git push` rejected (no rights) | Worker emits `error PUSH_FAILED` with stderr; UI shows inline error; run state unchanged. |
+| `gh pr create` fails | Worker emits `error PR_CREATE_FAILED`; UI shows inline error. |
+| `gh pr create` succeeds but stdout has no URL | Worker emits `error PR_URL_MISSING`; UI warns and disables to prevent double-push. |
 | User cancels mid-run | Parent sends `cancel`, worker calls `query.interrupt()`, exits cleanly. |
 | Two runs spawned for same card | Second one rejected by supervisor (one-active-run-per-card invariant). |
 | Diff capture fails after a successful run | Run still marked `done`; worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |

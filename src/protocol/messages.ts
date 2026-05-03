@@ -35,6 +35,10 @@ const RunInitPayloadSchema = z.object({
   // Where the worker writes the post-run patch file. Supplied by the
   // supervisor so the worker doesn't import paths.ts (module-boundaries).
   diffPath: z.string().min(1),
+  // How long the worker waits in the post-SDK approval window for an
+  // approve_pr message before exiting. Defaults to 15 minutes when absent.
+  // See phase-4/task-02 worker-lifecycle notes.
+  approveTimeoutMs: z.number().int().positive().optional(),
 });
 export type RunInitPayload = z.infer<typeof RunInitPayloadSchema>;
 export { RunInitPayloadSchema, DiffStatSchema };
@@ -103,6 +107,14 @@ const PrOpenedMessageSchema = z.object({
   url: z.string().url(),
 });
 
+// `code` is a stable string the UI can branch on; we keep the schema permissive
+// so new producers don't have to ship a schema bump. Documented codes:
+//   PROTOCOL_PARSE_ERROR / PROTOCOL_UNEXPECTED / PROTOCOL_EOF (worker startup)
+//   WORKTREE_FAILED / REPO_NOT_FOUND / BASE_BRANCH_MISSING / REPO_DIRTY
+//   DIFF_FAILED                                       (phase-4/task-01)
+//   SDK_RUNTIME_ERROR                                 (worker run.ts)
+//   GH_MISSING / GH_UNAUTH                            (phase-4/task-02 preflight)
+//   PUSH_FAILED / PR_CREATE_FAILED / PR_URL_MISSING   (phase-4/task-02 openPr)
 const ErrorMessageSchema = z.object({
   type: z.literal("error"),
   code: z.string().min(1),
