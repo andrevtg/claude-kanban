@@ -132,7 +132,7 @@ export function RunLog({
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="h-[28rem] overflow-y-auto bg-slate-50 p-3 font-mono text-xs leading-relaxed"
+        className="h-112 overflow-y-auto bg-slate-50 p-3 font-mono text-xs leading-relaxed"
       >
         {rows.length === 0 ? (
           <div className="text-slate-400">waiting for events…</div>
@@ -234,7 +234,7 @@ function Line({
     error: "text-red-700",
   }[tone];
   return (
-    <div className={`whitespace-pre-wrap break-words ${toneClass}`}>
+    <div className={`whitespace-pre-wrap wrap-break-word ${toneClass}`}>
       <span className="mr-2 inline-block w-16 shrink-0 text-slate-400">[{tag}]</span>
       <span>{children}</span>
     </div>

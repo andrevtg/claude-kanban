@@ -44,7 +44,7 @@ export function CardList({ initial }: { initial: Card[] }): ReactElement {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
+            className="rounded-sm bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
           >
             New card
           </button>
@@ -73,7 +73,7 @@ export function CardList({ initial }: { initial: Card[] }): ReactElement {
               {rows.map((card) => {
                 const action = actions[card.id] ?? null;
                 return (
-                  <li key={card.id} className="rounded-md border border-slate-300 bg-white p-4 shadow-sm">
+                  <li key={card.id} className="rounded-md border border-slate-300 bg-white p-4 shadow-xs">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <h4 className="truncate text-sm font-semibold text-slate-900">{card.title}</h4>
@@ -88,7 +88,7 @@ export function CardList({ initial }: { initial: Card[] }): ReactElement {
                           onClick={() =>
                             setAction(card.id, action?.kind === "run" ? null : { kind: "run" })
                           }
-                          className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                          className="rounded-sm border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
                         >
                           {action?.kind === "run" ? "Hide" : "Run"}
                         </button>
@@ -97,7 +97,7 @@ export function CardList({ initial }: { initial: Card[] }): ReactElement {
                           onClick={() =>
                             setAction(card.id, action?.kind === "edit" ? null : { kind: "edit" })
                           }
-                          className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                          className="rounded-sm border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
                         >
                           Edit
                         </button>
@@ -106,7 +106,7 @@ export function CardList({ initial }: { initial: Card[] }): ReactElement {
                           onClick={() =>
                             setAction(card.id, action?.kind === "delete" ? null : { kind: "delete" })
                           }
-                          className="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+                          className="rounded-sm border border-red-300 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
                         >
                           Delete
                         </button>

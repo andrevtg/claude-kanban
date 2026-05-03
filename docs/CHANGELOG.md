@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-02 — phase-3/setup — Tailwind v3 → v4 upgrade (CSS-first config, `@tailwindcss/postcss`); see ADR-009
 - 2026-05-03 — phase-3/task-01 — replace demo card with real CRUD UI (list, create/edit form, delete confirm); stabilize RunLog onDone ref to fix re-render tear-down race
 - 2026-05-02 — docs/decisions — add ADR-007 (cooperative cancel) and ADR-008 (worktree sweep policy)
 - 2026-05-02 — tasks/phase-3 — fix acceptance contradictions in tasks 02/03/04

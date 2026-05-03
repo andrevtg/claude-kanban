@@ -53,7 +53,7 @@ export function CardDeleteConfirm({
           type="button"
           onClick={onConfirm}
           disabled={deleting}
-          className="rounded bg-red-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-400"
+          className="rounded-sm bg-red-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-red-400"
         >
           {deleting ? "Deleting…" : "Confirm delete"}
         </button>
@@ -61,7 +61,7 @@ export function CardDeleteConfirm({
           type="button"
           onClick={onCancel}
           disabled={deleting}
-          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="rounded-sm border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
           Cancel
         </button>

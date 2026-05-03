@@ -142,3 +142,24 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 - *Cleanup on run completion.* Already explicitly rejected (commit aa2d1db); worktrees must persist for inspection and for phase-4 PR creation.
 
 **Trade-offs.** Long-lived dev sessions accumulate worktrees until restart. 24h threshold is conservative — runs older than that are unlikely to be of interest, but a future "demo on Monday what I built on Friday" use case might want to bump it. Threshold is configurable via `opts.maxAgeMs`.
+
+---
+
+## ADR-009: Tailwind v4 upgrade ahead of shadcn introduction
+
+**Date:** 2026-05-02
+**Status:** accepted
+
+**Context.** Phase-3/task-01 finished without shadcn/ui because shadcn's init step requires Tailwind v4. We were on Tailwind v3 from phase-2/task-01. Phase-3/task-02 onward (DnD board, drawer in task-04) want shadcn primitives.
+
+**Decision.** Upgrade Tailwind v3 → v4 as a dedicated step before task-02, using the official `@tailwindcss/upgrade` codemod. Initialize shadcn in a follow-up step (separate prompt) so the upgrade and the shadcn introduction land in clean, reviewable commits.
+
+**Alternatives considered.**
+
+- *Stay on Tailwind v3 and hand-roll components instead of using shadcn.* Viable for the rest of phase 3 — task-04's drawer is where shadcn's value peaks, but Sheet can be hand-built. Rejected because the partner-network audience expects a recognizable shadcn surface, not a bespoke component library.
+- *Upgrade Tailwind manually.* Rejected because the codemod handles the rename matrix and config migration mechanically; manual porting invites quiet utility-name regressions.
+- *Pin shadcn to a hypothetical v3-compatible older version.* Rejected; shadcn has moved on, pinning is a maintenance debt.
+
+**Trade-offs.** Tailwind v4's CSS-first config is genuinely different from v3's JS config; future contributors need to know this. v4 is also younger; expect occasional ecosystem rough edges (PostCSS plugins, IDE tooling). Net positive given the unblock.
+
+**Follow-up.** A separate prompt initializes shadcn after this upgrade lands. ADR-010 will document that decision if it warrants one (it might not — shadcn introduction may be straightforward enough that the architecture-doc dependency note suffices).

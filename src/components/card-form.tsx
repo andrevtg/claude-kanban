@@ -124,7 +124,7 @@ export function CardForm(props: Props): ReactElement {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="block w-full rounded border border-slate-300 px-2 py-1 text-sm"
+          className="block w-full rounded-sm border border-slate-300 px-2 py-1 text-sm"
         />
       </Field>
 
@@ -134,7 +134,7 @@ export function CardForm(props: Props): ReactElement {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={5}
-          className="block w-full rounded border border-slate-300 px-2 py-1 font-mono text-sm"
+          className="block w-full rounded-sm border border-slate-300 px-2 py-1 font-mono text-sm"
         />
       </Field>
 
@@ -145,7 +145,7 @@ export function CardForm(props: Props): ReactElement {
           value={repoPath}
           onChange={(e) => setRepoPath(e.target.value)}
           placeholder="/Users/you/projects/example"
-          className="block w-full rounded border border-slate-300 px-2 py-1 font-mono text-sm"
+          className="block w-full rounded-sm border border-slate-300 px-2 py-1 font-mono text-sm"
         />
       </Field>
 
@@ -155,7 +155,7 @@ export function CardForm(props: Props): ReactElement {
           type="text"
           value={baseBranch}
           onChange={(e) => setBaseBranch(e.target.value)}
-          className="block w-full rounded border border-slate-300 px-2 py-1 font-mono text-sm"
+          className="block w-full rounded-sm border border-slate-300 px-2 py-1 font-mono text-sm"
         />
       </Field>
 
@@ -165,7 +165,7 @@ export function CardForm(props: Props): ReactElement {
             id="card-status"
             value={status}
             onChange={(e) => setStatus(e.target.value as CardStatus)}
-            className="block rounded border border-slate-300 px-2 py-1 text-sm"
+            className="block rounded-sm border border-slate-300 px-2 py-1 text-sm"
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -186,7 +186,7 @@ export function CardForm(props: Props): ReactElement {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="rounded-sm bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           {submitting ? "Saving…" : mode === "create" ? "Create card" : "Save changes"}
         </button>
@@ -194,7 +194,7 @@ export function CardForm(props: Props): ReactElement {
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          className="rounded-sm border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
         >
           Cancel
         </button>

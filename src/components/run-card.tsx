@@ -67,7 +67,7 @@ export function RunCard({ card }: { card: Card }): ReactElement {
   }
 
   return (
-    <section className="rounded-lg border border-slate-300 bg-white shadow-sm">
+    <section className="rounded-lg border border-slate-300 bg-white shadow-xs">
       <header className="border-b border-slate-200 p-4">
         <h2 className="text-lg font-semibold text-slate-900">{card.title}</h2>
         <p className="mt-1 text-sm text-slate-600">{card.prompt}</p>
@@ -83,7 +83,7 @@ export function RunCard({ card }: { card: Card }): ReactElement {
           type="button"
           onClick={onRun}
           disabled={running}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="rounded-sm bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           {running ? "Running…" : "Run"}
         </button>
