@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-02 — phase-3/setup — initialize shadcn/ui ahead of task-02 (`components.json`, `src/lib/utils.ts`, base-nova theme tokens in `globals.css`)
 - 2026-05-02 — phase-3/setup — Tailwind v3 → v4 upgrade (CSS-first config, `@tailwindcss/postcss`); see ADR-009
 - 2026-05-03 — phase-3/task-01 — replace demo card with real CRUD UI (list, create/edit form, delete confirm); stabilize RunLog onDone ref to fix re-render tear-down race
 - 2026-05-02 — docs/decisions — add ADR-007 (cooperative cancel) and ADR-008 (worktree sweep policy)
