@@ -7,6 +7,12 @@
       "skillPath": "skills/claude-api/SKILL.md",
       "computedHash": "fe6c64489b954a17d24e3828f79165b230b2a24224d6310ad995061264ca2a3b"
     },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
+    },
     "skill-creator": {
       "source": "anthropics/skills",
       "sourceType": "github",
