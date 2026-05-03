@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-3 / task-01 — Card CRUD UI
 
 ## Goal

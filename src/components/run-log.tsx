@@ -33,6 +33,13 @@ export function RunLog({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stickToBottom = useRef(true);
 
+  // Hold onDone in a ref so the EventSource effect doesn't tear down
+  // every time the parent re-renders with a fresh callback identity.
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
   useEffect(() => {
     const es = new EventSource(`/api/cards/${cardId}/runs/${runId}/events`);
     let active = true;
@@ -70,7 +77,7 @@ export function RunLog({
       append([{ kind: "done", key: counter.current++, exitCode }]);
       setClosed(true);
       es.close();
-      onDone?.(exitCode);
+      onDoneRef.current?.(exitCode);
     };
 
     const onErr = (): void => {
@@ -100,7 +107,7 @@ export function RunLog({
       es.removeEventListener("error", onErr);
       es.close();
     };
-  }, [cardId, runId, onDone]);
+  }, [cardId, runId]);
 
   // Auto-scroll to bottom unless the user scrolled up.
   useEffect(() => {
