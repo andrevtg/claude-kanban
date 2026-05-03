@@ -18,10 +18,11 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useEffect, useState, type ReactElement } from "react";
-import type { Card, CardStatus } from "../protocol/index.js";
+import type { Card, CardStatus, Run } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
 import { BoardCard, type BoardCardAction } from "./board-card.js";
 import { BoardColumn } from "./board-column.js";
+import { CardDrawer } from "./card-drawer.js";
 
 const STATUS_ORDER: CardStatus[] = ["backlog", "ready", "running", "review", "done", "failed"];
 
@@ -39,6 +40,7 @@ export function Board({
   const [actions, setActions] = useState<Record<string, BoardCardAction>>({});
   const [notices, setNotices] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -87,6 +89,18 @@ export function Board({
     setAction(id, null);
     setNotice(id, null);
     setError(id, null);
+    if (selectedCardId === id) setSelectedCardId(null);
+  }
+
+  function onRunStarted(cardId: string, run: Run): void {
+    const now = new Date().toISOString();
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === cardId
+          ? { ...c, runs: [...c.runs, run], status: "running", updatedAt: now }
+          : c,
+      ),
+    );
   }
 
   async function onDragEnd(event: DragEndEvent): Promise<void> {
@@ -250,6 +264,7 @@ export function Board({
                       onAction={(a) => setAction(card.id, a)}
                       onEdited={onEdited}
                       onDeleted={onDeleted}
+                      onSelect={setSelectedCardId}
                     />
                   ))}
                 </BoardColumn>
@@ -277,6 +292,14 @@ export function Board({
           })}
         </div>
       )}
+
+      <CardDrawer
+        card={cards.find((c) => c.id === selectedCardId) ?? null}
+        onClose={() => setSelectedCardId(null)}
+        onEdited={onEdited}
+        onDeleted={onDeleted}
+        onRunStarted={onRunStarted}
+      />
     </div>
   );
 }

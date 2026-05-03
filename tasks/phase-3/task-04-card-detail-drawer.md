@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-3 / task-04 — Card detail drawer with run history
 
 ## Goal

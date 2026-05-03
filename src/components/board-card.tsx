@@ -18,6 +18,7 @@ type Props = {
   onAction: (action: BoardCardAction) => void;
   onEdited: (card: Card) => void;
   onDeleted: (id: string) => void;
+  onSelect: (id: string) => void;
 };
 
 export function BoardCard({
@@ -28,6 +29,7 @@ export function BoardCard({
   onAction,
   onEdited,
   onDeleted,
+  onSelect,
 }: Props): ReactElement {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -46,6 +48,7 @@ export function BoardCard({
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => onSelect(card.id)}
       className="cursor-grab touch-none rounded-md border border-slate-300 bg-white p-3 shadow-xs active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-2">
@@ -97,7 +100,7 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "edit" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <CardForm
             mode="edit"
             initial={card}
@@ -108,7 +111,7 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "delete" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <CardDeleteConfirm
             card={card}
             onDeleted={() => onDeleted(card.id)}
@@ -118,7 +121,7 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "run" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()}>
+        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <RunCard card={card} />
         </div>
       ) : null}
