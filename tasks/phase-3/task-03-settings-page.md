@@ -91,7 +91,10 @@ Manual acceptance — verify each field round-trips:
    navigate to `/settings`. The form renders with `defaultModel` =
    `claude-opus-4-7`, `bashAllowlist` populated with
    `DEFAULT_BASH_ALLOWLIST`, `prAutoApprove` unchecked, `apiKeyPath`
-   empty (with a clear "no key configured" indicator).
+   empty (with a clear "no key configured" indicator). `apiKeyPath`
+   is required by `GlobalSettingsSchema`, so a save attempt at this
+   point fails validation until a path is provided — surface that
+   inline rather than silently writing partial settings.
 2. **`apiKeyPath` save and reload.** Enter a real path to a file you
    created with `chmod 600`. Submit. Reload `/settings` — the path is
    still there. `~/.claude-kanban/settings.json` on disk shows the
@@ -114,9 +117,10 @@ Manual acceptance — verify each field round-trips:
    save, reload — list matches `DEFAULT_BASH_ALLOWLIST` exactly.
 7. **`prAutoApprove` toggle and reload.** Toggle it on, save, reload
    — checkbox stays on. Toggle off, save, reload — stays off.
-8. **Validation error.** Clear `apiKeyPath` (required by schema) and
-   submit. Form stays open with an inline error on that field;
-   `settings.json` is unchanged.
+8. **Validation error — bad path.** Set `apiKeyPath` to a path
+   that doesn't exist (e.g. `/tmp/nonexistent-key-file`). Submit.
+   The form surfaces an inline error like "file not found at
+   <path>"; `settings.json` is unchanged.
 9. **Phase-3 regressions.** From `/`, the board, card CRUD (task-01),
    and DnD (task-02) all still work. Triggering a run still succeeds.
 

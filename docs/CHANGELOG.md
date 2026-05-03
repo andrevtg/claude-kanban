@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-02 — tasks/phase-3 — fix acceptance contradictions in tasks 02/03/04
 - 2026-05-02 — tasks/phase-3 — expand stub README into five task files (card CRUD, DnD, settings, drawer, cancel/cleanup)
 - 2026-05-01 — phase-2/task-04 — render single demo card with run button and live SSE event log
 - 2026-05-01 — fix — suppress hydration warning on <html> for browser-extension attrs

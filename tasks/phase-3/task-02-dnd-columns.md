@@ -101,14 +101,14 @@ Manual acceptance — verify each column transition explicitly:
    stays visible in the card's run history.
 5. **`review → done`.** Drag a review card to done. Status persists.
 6. **`review → failed`.** Drag a review card to failed. Status persists.
-7. **Drop into `running` while a run is active (409 path).** With a
-   card already in running, drag a *second* card into running. The
-   second card lands in running, an inline notice surfaces explaining
-   a run is already active for that card (use a card whose runs[]
-   already has an active entry — i.e., reproduce by triggering a run,
-   then dragging the same card out and back in). No second run is
-   started; verify by checking `~/.claude-kanban/logs/` has only one
-   new ndjson file.
+7. **Drop into `running` re-triggers the same active run (409 path).**
+   Trigger a run on a card. Before it finishes, drag the same card
+   out of `running` (status now `ready` or wherever) and back into
+   `running`. The drop succeeds visually but no second run starts;
+   an inline notice indicates the existing run is already active.
+   Verify by checking `~/.claude-kanban/logs/` has only one new
+   ndjson file from this exercise. The notice carries the active
+   `runId`.
 8. **Server-error revert.** Stop the dev server, drag a card between
    two non-running columns. The card snaps back to its source column
    with an inline error. Restart the server and the previous status

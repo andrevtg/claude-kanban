@@ -112,9 +112,8 @@ Manual acceptance — verify each visible state:
    (they're per-run, not per-card; that's deliberate for forensic
    value). Confirm `~/.claude-kanban/cards/<id>.json` is gone.
 9. **Close drawer.** Click outside or press Escape. Drawer closes.
-   Reopening the same card returns to the run that was selected (or
-   the default latest, if state is not persisted — pick one and
-   document it in the file's top comment).
+   Reopening the same card defaults to the latest run, regardless
+   of which run was selected when the drawer was closed.
 10. **Phase-2/3 regressions.** Drag-and-drop, board state, settings
     page all unaffected.
 
@@ -128,8 +127,7 @@ Manual acceptance — verify each visible state:
   `docs/02-agent-sdk-usage.md`.
 - Persisting drawer-open state in the URL (`?card=<id>`). Nice-to-have,
   phase 5.
-- Restoring the last-selected run id when the drawer reopens, if the
-  one-way "default to latest" rule is chosen.
+- Restoring the last-selected run id when the drawer reopens.
 - Visual treatment of the drawer (slide-in, full-screen on mobile,
   overlay vs. push). The frontend-design skill owns this.
 - Bulk run history operations (clear history, delete a single run).
