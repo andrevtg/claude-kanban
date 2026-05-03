@@ -10,16 +10,29 @@ type FieldErrors = Partial<Record<"title" | "prompt" | "repoPath" | "baseBranch"
 type ZodIssue = { path: (string | number)[]; message: string };
 
 type Props =
-  | { mode: "create"; onSuccess: (card: Card) => void; onCancel: () => void; initial?: undefined }
-  | { mode: "edit"; initial: Card; onSuccess: (card: Card) => void; onCancel: () => void };
+  | {
+      mode: "create";
+      onSuccess: (card: Card) => void;
+      onCancel: () => void;
+      initial?: undefined;
+      defaultRepoPath?: string | null;
+    }
+  | {
+      mode: "edit";
+      initial: Card;
+      onSuccess: (card: Card) => void;
+      onCancel: () => void;
+      defaultRepoPath?: undefined;
+    };
 
 export function CardForm(props: Props): ReactElement {
   const { mode, onSuccess, onCancel } = props;
   const initial = mode === "edit" ? props.initial : undefined;
+  const defaultRepoPath = mode === "create" ? props.defaultRepoPath ?? "" : "";
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [prompt, setPrompt] = useState(initial?.prompt ?? "");
-  const [repoPath, setRepoPath] = useState(initial?.repoPath ?? "");
+  const [repoPath, setRepoPath] = useState(initial?.repoPath ?? defaultRepoPath);
   const [baseBranch, setBaseBranch] = useState(initial?.baseBranch ?? "main");
   const [status, setStatus] = useState<CardStatus>(initial?.status ?? "backlog");
 

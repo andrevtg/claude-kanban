@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-3 / task-03 — Settings page
 
 ## Goal

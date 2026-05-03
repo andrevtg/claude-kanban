@@ -27,7 +27,13 @@ const STATUS_ORDER: CardStatus[] = ["backlog", "ready", "running", "review", "do
 
 type ZodIssue = { path: (string | number)[]; message: string };
 
-export function Board({ initial }: { initial: Card[] }): ReactElement {
+export function Board({
+  initial,
+  defaultRepoPath = null,
+}: {
+  initial: Card[];
+  defaultRepoPath?: string | null;
+}): ReactElement {
   const [cards, setCards] = useState<Card[]>(initial);
   const [creating, setCreating] = useState(false);
   const [actions, setActions] = useState<Record<string, BoardCardAction>>({});
@@ -208,7 +214,12 @@ export function Board({ initial }: { initial: Card[] }): ReactElement {
       </div>
 
       {creating ? (
-        <CardForm mode="create" onSuccess={onCreated} onCancel={() => setCreating(false)} />
+        <CardForm
+          mode="create"
+          onSuccess={onCreated}
+          onCancel={() => setCreating(false)}
+          defaultRepoPath={defaultRepoPath}
+        />
       ) : null}
 
       {cards.length === 0 && !creating ? (
