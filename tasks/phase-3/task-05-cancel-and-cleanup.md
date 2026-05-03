@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-3 / task-05 — Cancel button and stale-run cleanup
 
 ## Goal

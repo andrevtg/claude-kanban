@@ -86,9 +86,7 @@ Anything else: deny via `canUseTool`, log a `permission_denied` event to the NDJ
 
 ## Cancellation
 
-**Phase-1 reality:** cooperative cancel is *not* wired in the worker. `Supervisor.cancel(runId)` writes a `{type:"cancel"}` line to the worker's stdin (see `src/lib/supervisor/index.ts:cancel`), but `src/worker/run.ts` does not consume stdin during the SDK loop, so the cancel line is ignored. The supervisor's wall-clock escalation in `Supervisor.escalate` is what actually stops a run: cancel-line → wait `sigtermDelayMs` (5s default) → `SIGTERM` → wait `sigkillDelayMs` (5s default) → `SIGKILL`.
-
-That's acceptable for phase-1 timeout behavior but not for a user-facing Cancel button. Before phase-3 task-05 lands, wire `q.interrupt()` like this:
+Cooperative cancel is wired in `src/worker/run.ts` (phase-3/task-05). The worker runs a `readWireMessages(stdin)` loop concurrently with the SDK iterator and calls `q.interrupt()` on a `{ type: "cancel" }` line. Re-entrant cancels are no-ops. The supervisor's wall-clock escalation in `Supervisor.escalate` (cancel-line → 5s SIGTERM → 5s SIGKILL) stays as a backstop. Shape:
 
 ```ts
 import { readWireMessages } from "./stdio.js";

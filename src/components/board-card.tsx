@@ -7,6 +7,7 @@ import type { Card } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunCard } from "./run-card.js";
+import { CancelButton } from "./cancel-button.js";
 
 export type BoardCardAction = { kind: "edit" } | { kind: "delete" } | { kind: "run" } | null;
 
@@ -41,6 +42,9 @@ export function BoardCard({
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+
+  const lastRun = card.runs[card.runs.length - 1];
+  const activeRunId = lastRun && !lastRun.endedAt ? lastRun.id : null;
 
   return (
     <li
@@ -86,6 +90,9 @@ export function BoardCard({
           label="Delete"
           danger
         />
+        {activeRunId ? (
+          <CancelButton cardId={card.id} runId={activeRunId} condensed />
+        ) : null}
       </div>
 
       {inlineNotice ? (

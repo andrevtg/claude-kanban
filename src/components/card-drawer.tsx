@@ -5,6 +5,7 @@ import type { Card, CardStatus, Run } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunLog } from "./run-log.js";
+import { CancelButton } from "./cancel-button.js";
 
 type RunHandleResponse = {
   runId: string;
@@ -216,11 +217,11 @@ export function CardDrawer({
                   const active = r.id === selectedRunId;
                   const live = !r.endedAt;
                   return (
-                    <li key={r.id}>
+                    <li key={r.id} className="flex items-stretch gap-1">
                       <button
                         type="button"
                         onClick={() => setSelectedRunId(r.id)}
-                        className={`flex w-full items-center justify-between gap-2 rounded-sm border px-2 py-1 text-left text-xs ${
+                        className={`flex flex-1 items-center justify-between gap-2 rounded-sm border px-2 py-1 text-left text-xs ${
                           active
                             ? "border-slate-700 bg-slate-100"
                             : "border-slate-200 hover:bg-slate-50"
@@ -239,6 +240,9 @@ export function CardDrawer({
                           {formatRunMeta(r)}
                         </span>
                       </button>
+                      {live ? (
+                        <CancelButton cardId={card.id} runId={r.id} condensed />
+                      ) : null}
                     </li>
                   );
                 })}

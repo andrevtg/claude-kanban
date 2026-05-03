@@ -8,6 +8,7 @@
 import { resolve } from "node:path";
 import { fileStore, type Store } from "../store/index.js";
 import { Supervisor } from "./index.js";
+import { sweepStaleWorktrees } from "./cleanup.js";
 
 let supervisor: Supervisor | null = null;
 let store: Store | null = null;
@@ -26,6 +27,26 @@ export function getSupervisor(): Supervisor {
     workerEntry,
     nodeArgs: ["--import", "tsx"],
   });
+  // Fire-and-forget sweep of stale worktrees from previous runs. Runs once
+  // per supervisor construction (i.e. once per Next.js process / HMR cycle).
+  void sweepStaleWorktrees(store)
+    .then((r) => {
+      if (r.removed.length > 0) {
+        process.stderr.write(
+          `[supervisor] sweep removed: ${r.removed.join(", ")}\n`,
+        );
+      }
+      if (r.orphans.length > 0) {
+        process.stderr.write(
+          `[supervisor] sweep orphans (no card claims run id): ${r.orphans.join(", ")}\n`,
+        );
+      }
+    })
+    .catch((e: unknown) => {
+      process.stderr.write(
+        `[supervisor] sweep error: ${e instanceof Error ? e.message : String(e)}\n`,
+      );
+    });
   return supervisor;
 }
 

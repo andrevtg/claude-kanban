@@ -23,6 +23,7 @@ import { CardForm } from "./card-form.js";
 import { BoardCard, type BoardCardAction } from "./board-card.js";
 import { BoardColumn } from "./board-column.js";
 import { CardDrawer } from "./card-drawer.js";
+import { RunDoneWatcher } from "./run-done-watcher.js";
 
 const STATUS_ORDER: CardStatus[] = ["backlog", "ready", "running", "review", "done", "failed"];
 
@@ -90,6 +91,18 @@ export function Board({
     setNotice(id, null);
     setError(id, null);
     if (selectedCardId === id) setSelectedCardId(null);
+  }
+
+  async function refreshCard(cardId: string): Promise<void> {
+    try {
+      const res = await fetch(`/api/cards/${cardId}`);
+      if (!res.ok) return;
+      const updated = (await res.json()) as Card;
+      setCards((prev) => prev.map((c) => (c.id === cardId ? updated : c)));
+    } catch {
+      // Best-effort: a refetch failure just leaves the existing state in
+      // place; the watcher won't refire and the user can reload manually.
+    }
   }
 
   function onRunStarted(cardId: string, run: Run): void {
@@ -300,6 +313,19 @@ export function Board({
         onDeleted={onDeleted}
         onRunStarted={onRunStarted}
       />
+
+      {cards.flatMap((c) => {
+        const last = c.runs[c.runs.length - 1];
+        if (!last || last.endedAt) return [];
+        return [
+          <RunDoneWatcher
+            key={`${c.id}:${last.id}`}
+            cardId={c.id}
+            runId={last.id}
+            onDone={() => void refreshCard(c.id)}
+          />,
+        ];
+      })}
     </div>
   );
 }

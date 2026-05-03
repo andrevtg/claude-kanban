@@ -68,7 +68,7 @@ export async function main(
     return EXIT_GIT_ERROR;
   }
 
-  const { exitCode: agentExit } = await runAgent(init, send);
+  const { exitCode: agentExit } = await runAgent(init, send, input);
 
   send({
     type: "event",
