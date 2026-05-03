@@ -150,7 +150,7 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 
 The dependency surface is part of the architecture; new packages need a doc update before they land.
 
-- Runtime: `@anthropic-ai/claude-agent-sdk` (worker only), `next` 15, `react`/`react-dom` 19, `ulid`, `zod`, `clsx` + `tailwind-merge` (shadcn `cn()` helper), `tw-animate-css` (CSS imported by `globals.css`).
+- Runtime: `@anthropic-ai/claude-agent-sdk` (worker only), `next` 15, `react`/`react-dom` 19, `ulid`, `zod`, `clsx` + `tailwind-merge` (shadcn `cn()` helper), `tw-animate-css` (CSS imported by `globals.css`), `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities` (kanban drag-and-drop, phase-3/task-02).
 - Dev: `typescript`, `tsx`, `eslint` + `@typescript-eslint/*`, `prettier`, `tailwindcss` 4, `@tailwindcss/postcss`, `postcss`, `eslint-config-next`, `@types/{node,react,react-dom}`, `shadcn` (CLI for `init`/`add`).
 
 Phase-2/task-01 added Next.js 15 / React 19 / Tailwind 3. Tailwind v4 introduced in phase-3/setup; CSS-first configuration via `@theme` blocks in `src/app/globals.css`. See [ADR-009](./03-decisions.md).

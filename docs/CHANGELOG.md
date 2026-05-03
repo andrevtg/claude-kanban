@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-03 — phase-3/task-02 — six-column kanban board with dnd-kit (drag to move, drop into running triggers run, 409/error revert)
 - 2026-05-02 — phase-3/setup — remove dead next/font self-reference, accept Tailwind v4 default sans
 - 2026-05-02 — phase-3/setup — initialize shadcn/ui ahead of task-02 (`components.json`, `src/lib/utils.ts`, base-nova theme tokens in `globals.css`)
 - 2026-05-02 — phase-3/setup — Tailwind v3 → v4 upgrade (CSS-first config, `@tailwindcss/postcss`); see ADR-009

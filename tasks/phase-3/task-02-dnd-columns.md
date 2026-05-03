@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-3 / task-02 — Kanban columns with drag-and-drop
 
 ## Goal
