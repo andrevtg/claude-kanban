@@ -160,6 +160,6 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 - *Upgrade Tailwind manually.* Rejected because the codemod handles the rename matrix and config migration mechanically; manual porting invites quiet utility-name regressions.
 - *Pin shadcn to a hypothetical v3-compatible older version.* Rejected; shadcn has moved on, pinning is a maintenance debt.
 
-**Trade-offs.** Tailwind v4's CSS-first config is genuinely different from v3's JS config; future contributors need to know this. v4 is also younger; expect occasional ecosystem rough edges (PostCSS plugins, IDE tooling). Net positive given the unblock.
+**Trade-offs.** Tailwind v4's CSS-first config is genuinely different from v3's JS config; future contributors need to know this. v4 is also younger; expect occasional ecosystem rough edges (PostCSS plugins, IDE tooling). Net positive given the unblock. The codemod left a self-referential `--font-sans` line in `globals.css` assuming next/font integration; this project does not use next/font, so the line was removed and v4's default sans stack is accepted as the project's font.
 
 **Follow-up.** A separate prompt initializes shadcn after this upgrade lands. ADR-010 will document that decision if it warrants one (it might not — shadcn introduction may be straightforward enough that the architecture-doc dependency note suffices).
