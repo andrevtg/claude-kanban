@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-4 / task-01 — Git diff capture
 
 ## Goal

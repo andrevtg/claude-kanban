@@ -186,7 +186,7 @@ describe("openRunStream", () => {
       baseBranch: "main",
     });
     await store.appendRun(card.id, { id: "run_DONE", startedAt: "2026-05-01T00:00:00.000Z" });
-    await store.patchRun(card.id, "run_DONE", { endedAt: "2026-05-01T00:00:05.000Z", exitCode: 3 });
+    await store.updateRun(card.id, "run_DONE", { endedAt: "2026-05-01T00:00:05.000Z", exitCode: 3 });
 
     const sup = new FakeSupervisor(); // run_DONE is not active.
     const ac = new AbortController();

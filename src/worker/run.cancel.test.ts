@@ -22,6 +22,7 @@ function makeInit(): RunInitPayload {
     allowedTools: ["Read"],
     bashAllowlist: [],
     maxTurns: 1,
+    diffPath: "/tmp/diffs/run.patch",
   };
 }
 

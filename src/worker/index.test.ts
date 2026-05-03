@@ -57,6 +57,7 @@ async function setupHarness(runId: string): Promise<Harness> {
     allowedTools: ["Read"],
     bashAllowlist: [],
     maxTurns: 1,
+    diffPath: join(scratch, `${runId}.patch`),
   };
   const collected: WireMessage[] = [];
   const send = (m: WireMessage): void => {

@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sweepStaleWorktrees } from "./cleanup.js";
 import { memoryStore, type Store } from "../store/index.js";
-import { workDir } from "../paths.js";
+import { diffPath, diffsDir, workDir } from "../paths.js";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -58,7 +58,7 @@ describe("sweepStaleWorktrees", () => {
     });
     await store.appendRun(card.id, { id: runId, startedAt: new Date(0).toISOString() });
     if (endedAt !== null) {
-      await store.patchRun(card.id, runId, { endedAt, exitCode: 0 });
+      await store.updateRun(card.id, runId, { endedAt, exitCode: 0 });
     }
   }
 
@@ -128,6 +128,22 @@ describe("sweepStaleWorktrees", () => {
     const r = await sweepStaleWorktrees(store, { maxAgeMs: 24 * HOUR });
     assert.deepEqual(r, { removed: [], kept: [], orphans: [] });
     assert.equal(await exists(stray), true);
+  });
+
+  it("removes a stale run's diff patch alongside its worktree", async () => {
+    const store = memoryStore();
+    const runId = "run_diff_old";
+    const path = await makeWorktree(runId);
+    await mkdir(diffsDir(), { recursive: true });
+    const patch = diffPath(runId);
+    await writeFile(patch, "*** patch ***\n", "utf8");
+    const endedAt = new Date(Date.now() - 48 * HOUR).toISOString();
+    await seedCardWithRun(store, runId, endedAt);
+
+    const r = await sweepStaleWorktrees(store, { maxAgeMs: 24 * HOUR });
+    assert.deepEqual(r.removed, [runId]);
+    assert.equal(await exists(path), false);
+    assert.equal(await exists(patch), false);
   });
 
   it("uses the supplied `now` for deterministic age calculation", async () => {

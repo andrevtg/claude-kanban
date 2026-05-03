@@ -87,7 +87,7 @@ export function memoryStore(): Store {
       cards.set(cardId, merged);
     },
 
-    async patchRun(cardId, runId, patch) {
+    async updateRun(cardId, runId, patch) {
       const existing = cards.get(cardId);
       if (!existing) throw new CardNotFoundError(cardId);
       const idx = existing.runs.findIndex((r) => r.id === runId);
@@ -102,6 +102,7 @@ export function memoryStore(): Store {
         updatedAt: nowIso(),
       });
       cards.set(cardId, merged);
+      return updated;
     },
 
     async appendEvent(runId, entry) {

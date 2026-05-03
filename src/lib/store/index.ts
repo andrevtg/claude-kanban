@@ -29,7 +29,7 @@ export interface Store {
 
   // runs (within a card)
   appendRun(cardId: string, run: Run): Promise<void>;
-  patchRun(cardId: string, runId: string, patch: Partial<Run>): Promise<void>;
+  updateRun(cardId: string, runId: string, patch: Partial<Run>): Promise<Run>;
 
   // event logs (NDJSON, append-only)
   appendEvent(runId: string, entry: EventLogEntry): Promise<void>;

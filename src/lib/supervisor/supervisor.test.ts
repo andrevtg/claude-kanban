@@ -17,6 +17,7 @@ const FIXTURES = join(__dirname, "__fixtures__");
 const HAPPY = join(FIXTURES, "happy-worker.mjs");
 const MALFORMED = join(FIXTURES, "malformed-worker.mjs");
 const HANG = join(FIXTURES, "hang-worker.mjs");
+const DIFF = join(FIXTURES, "diff-worker.mjs");
 
 const settings: GlobalSettings = {
   apiKeyPath: "/dev/null",
@@ -152,6 +153,23 @@ describe("Supervisor", () => {
         }, 50);
         await sup.waitForDone(handle.runId);
       }
+    });
+  });
+
+  it("persists diffStat onto the run when the worker emits diff_ready", async () => {
+    await withHome(async () => {
+      const sup = new Supervisor({ store, workerEntry: DIFF });
+      const card = await makeCard(store);
+
+      const handle = await sup.startRun(card, settings);
+      await sup.waitForDone(handle.runId);
+
+      // The updateRun call is fire-and-forget; let it settle.
+      await new Promise((r) => setTimeout(r, 20));
+
+      const updated = await store.getCard(card.id);
+      const run = updated?.runs.find((r) => r.id === handle.runId);
+      assert.deepStrictEqual(run?.diffStat, { files: 3, insertions: 7, deletions: 2 });
     });
   });
 

@@ -15,7 +15,7 @@
 // and the worktree boundary actually work.
 
 import type { Readable } from "node:stream";
-import { createWorktree, GitError } from "./git.js";
+import { captureDiff, createWorktree, GitError } from "./git.js";
 import { runAgent as defaultRunAgent } from "./run.js";
 import { makeSender, readWireMessages, type SendFn } from "./stdio.js";
 import type { RunInitPayload, WireMessage } from "../protocol/messages.js";
@@ -78,6 +78,44 @@ export async function main(
       message: `worktree retained at ${worktreePath} on branch ${init.branchName}`,
     },
   });
+
+  if (agentExit === 0) {
+    try {
+      const result = await captureDiff({
+        worktreePath,
+        baseBranch: init.baseBranch,
+        patchPath: init.diffPath,
+      });
+      send({
+        type: "diff_ready",
+        stat: result.stat,
+        patchPath: result.stat.files === 0 ? "" : init.diffPath,
+        truncated: result.truncated,
+        bytes: result.bytes,
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      const code = e instanceof GitError ? e.code : "DIFF_FAILED";
+      send({ type: "error", code, message });
+      send({
+        type: "event",
+        event: {
+          kind: "worker",
+          level: "error",
+          message: `diff capture failed: ${message}`,
+        },
+      });
+    }
+  } else {
+    send({
+      type: "event",
+      event: {
+        kind: "worker",
+        level: "info",
+        message: `skipping diff capture (agent exited with code ${agentExit})`,
+      },
+    });
+  }
 
   const finalExit = agentExit === 0 ? EXIT_OK : EXIT_SDK_ERROR;
   send({ type: "done", exitCode: finalExit });

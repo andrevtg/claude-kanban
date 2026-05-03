@@ -39,9 +39,18 @@ export function runLog(runId: string): string {
   return join(logsDir(), `${runId}.ndjson`);
 }
 
+export function diffsDir(): string {
+  return join(claudeKanbanDir(), "diffs");
+}
+
+export function diffPath(runId: string): string {
+  return join(diffsDir(), `${runId}.patch`);
+}
+
 export async function ensureDirs(): Promise<void> {
   await mkdir(claudeKanbanDir(), { recursive: true });
   await mkdir(cardsDir(), { recursive: true });
   await mkdir(workDir(), { recursive: true });
   await mkdir(logsDir(), { recursive: true });
+  await mkdir(diffsDir(), { recursive: true });
 }

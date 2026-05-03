@@ -135,7 +135,7 @@ for (const { name, make } of factories) {
       await assert.rejects(() => h.store.deleteCard("card_NOPE"), CardNotFoundError);
     });
 
-    it("appendRun and patchRun", async () => {
+    it("appendRun and updateRun", async () => {
       const card = await h.store.createCard({
         title: "t",
         prompt: "p",
@@ -147,16 +147,34 @@ for (const { name, make } of factories) {
       assert.equal(after1!.runs.length, 1);
       assert.equal(after1!.runs[0]!.id, "run_A");
 
-      await h.store.patchRun(card.id, "run_A", {
+      const updated = await h.store.updateRun(card.id, "run_A", {
         endedAt: "2026-04-30T01:00:00.000Z",
         exitCode: 0,
       });
+      assert.equal(updated.exitCode, 0);
+      assert.equal(updated.endedAt, "2026-04-30T01:00:00.000Z");
       const after2 = await h.store.getCard(card.id);
       assert.equal(after2!.runs[0]!.exitCode, 0);
       assert.equal(after2!.runs[0]!.endedAt, "2026-04-30T01:00:00.000Z");
 
+      const withDiff = await h.store.updateRun(card.id, "run_A", {
+        diffStat: { files: 2, insertions: 12, deletions: 3 },
+      });
+      assert.deepStrictEqual(withDiff.diffStat, { files: 2, insertions: 12, deletions: 3 });
+      const after3 = await h.store.getCard(card.id);
+      assert.deepStrictEqual(after3!.runs[0]!.diffStat, {
+        files: 2,
+        insertions: 12,
+        deletions: 3,
+      });
+
+      const withPr = await h.store.updateRun(card.id, "run_A", {
+        prUrl: "https://github.com/o/r/pull/9",
+      });
+      assert.equal(withPr.prUrl, "https://github.com/o/r/pull/9");
+
       await assert.rejects(
-        () => h.store.patchRun(card.id, "run_NOPE", { exitCode: 1 }),
+        () => h.store.updateRun(card.id, "run_NOPE", { exitCode: 1 }),
         RunNotFoundError,
       );
       await assert.rejects(() => h.store.appendRun("card_NOPE", sampleRun()), CardNotFoundError);

@@ -61,6 +61,8 @@ Everything is JSON on disk under `~/.claude-kanban/`:
 │   └── card_01HXYZ.json    Card document with embedded run history
 ├── work/
 │   └── run_01HABC/         Ephemeral worktree for an active or recent run
+├── diffs/
+│   └── run_01HABC.patch    Per-run patch files; managed by the same stale-run sweep as worktrees
 └── logs/
     └── run_01HABC.ndjson   Append-only event log per run
 ```
@@ -141,6 +143,7 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 | `gh` not installed | PR step disabled with a clear message; the card still shows the diff. |
 | User cancels mid-run | Parent sends `cancel`, worker calls `query.interrupt()`, exits cleanly. |
 | Two runs spawned for same card | Second one rejected by supervisor (one-active-run-per-card invariant). |
+| Diff capture fails after a successful run | Run still marked `done`; worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |
 
 ## Out of scope (and why)
 

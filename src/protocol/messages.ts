@@ -32,6 +32,9 @@ const RunInitPayloadSchema = z.object({
   allowedTools: z.array(z.string()),
   bashAllowlist: z.array(z.string()),
   maxTurns: z.number().int().positive(),
+  // Where the worker writes the post-run patch file. Supplied by the
+  // supervisor so the worker doesn't import paths.ts (module-boundaries).
+  diffPath: z.string().min(1),
 });
 export type RunInitPayload = z.infer<typeof RunInitPayloadSchema>;
 export { RunInitPayloadSchema, DiffStatSchema };
@@ -88,6 +91,11 @@ const EventMessageSchema = z.object({
 const DiffReadyMessageSchema = z.object({
   type: z.literal("diff_ready"),
   stat: DiffStatSchema,
+  // Absolute path to the on-disk patch file under ~/.claude-kanban/diffs/.
+  // Empty string when the diff is empty (no patch file written).
+  patchPath: z.string(),
+  truncated: z.boolean(),
+  bytes: z.number().int().nonnegative(),
 });
 
 const PrOpenedMessageSchema = z.object({

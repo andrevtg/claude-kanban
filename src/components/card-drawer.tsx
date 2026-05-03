@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import type { Card, CardStatus, Run } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunLog } from "./run-log.js";
+import { RunDiff } from "./run-diff.js";
 import { CancelButton } from "./cancel-button.js";
 
 type RunHandleResponse = {
@@ -29,6 +30,7 @@ type Props = {
 };
 
 type Mode = { kind: "view" } | { kind: "edit" } | { kind: "delete" };
+type Pane = "log" | "diff";
 
 export function CardDrawer({
   card,
@@ -38,6 +40,7 @@ export function CardDrawer({
   onRunStarted,
 }: Props): ReactElement | null {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [pane, setPane] = useState<Pane>("log");
   const [mode, setMode] = useState<Mode>({ kind: "view" });
   const [runStarting, setRunStarting] = useState(false);
   const [runMessage, setRunMessage] = useState<string | null>(null);
@@ -250,9 +253,33 @@ export function CardDrawer({
             )}
           </div>
 
-          <div className="overflow-hidden">
+          <div className="grid grid-rows-[auto_1fr] overflow-hidden">
             {selectedRun ? (
-              <RunLog key={selectedRun.id} cardId={card.id} runId={selectedRun.id} />
+              <>
+                <div className="flex border-b border-slate-200 bg-slate-50 px-4">
+                  <PaneTab active={pane === "log"} onClick={() => setPane("log")}>
+                    Events
+                  </PaneTab>
+                  <PaneTab active={pane === "diff"} onClick={() => setPane("diff")}>
+                    Diff
+                    {selectedRun.diffStat ? (
+                      <span className="ml-1 font-mono text-[10px] text-slate-500">
+                        +{selectedRun.diffStat.insertions} -{selectedRun.diffStat.deletions}
+                      </span>
+                    ) : null}
+                  </PaneTab>
+                </div>
+                {pane === "log" ? (
+                  <RunLog key={selectedRun.id} cardId={card.id} runId={selectedRun.id} />
+                ) : (
+                  <RunDiff
+                    key={selectedRun.id}
+                    cardId={card.id}
+                    runId={selectedRun.id}
+                    diffStat={selectedRun.diffStat}
+                  />
+                )}
+              </>
             ) : (
               <div className="p-4 text-sm text-slate-500">
                 {runs.length === 0
@@ -264,6 +291,31 @@ export function CardDrawer({
         </div>
       </aside>
     </div>
+  );
+}
+
+function PaneTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`-mb-px border-b-2 px-3 py-1.5 text-xs font-medium ${
+        active
+          ? "border-slate-900 text-slate-900"
+          : "border-transparent text-slate-500 hover:text-slate-700"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

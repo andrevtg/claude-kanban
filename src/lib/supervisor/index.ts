@@ -23,7 +23,7 @@ import {
   type WireMessage,
 } from "../../protocol/messages.js";
 import type { Card, EventLogEntry, GlobalSettings } from "../../protocol/index.js";
-import { logsDir, runDir } from "../paths.js";
+import { diffPath, logsDir, runDir } from "../paths.js";
 import type { Store } from "../store/index.js";
 
 export interface RunHandle {
@@ -218,6 +218,7 @@ export class Supervisor extends EventEmitter {
       allowedTools: [...this.allowedTools],
       bashAllowlist: [...settings.bashAllowlist],
       maxTurns: this.maxTurns,
+      diffPath: diffPath(runId),
     };
     this.sendToWorker(active, { type: "init", run: initPayload });
 
@@ -332,8 +333,23 @@ export class Supervisor extends EventEmitter {
         );
         return;
       }
+      case "diff_ready": {
+        const entry: EventLogEntry = {
+          timestamp: new Date().toISOString(),
+          message: msg,
+        };
+        this.dispatchEvent(active.runId, entry);
+        this.store
+          .updateRun(active.cardId, active.runId, { diffStat: msg.stat })
+          .catch((e: unknown) => {
+            const errMsg = e instanceof Error ? e.message : String(e);
+            process.stderr.write(
+              `[${active.runId}] supervisor updateRun(diffStat) error: ${errMsg}\n`,
+            );
+          });
+        return;
+      }
       case "event":
-      case "diff_ready":
       case "pr_opened":
       case "error": {
         const entry: EventLogEntry = {
@@ -382,13 +398,13 @@ export class Supervisor extends EventEmitter {
     }
 
     try {
-      await this.store.patchRun(active.cardId, active.runId, {
+      await this.store.updateRun(active.cardId, active.runId, {
         endedAt: new Date().toISOString(),
         exitCode,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      process.stderr.write(`[${active.runId}] supervisor patchRun error: ${msg}\n`);
+      process.stderr.write(`[${active.runId}] supervisor updateRun error: ${msg}\n`);
     }
 
     this.active.delete(active.runId);

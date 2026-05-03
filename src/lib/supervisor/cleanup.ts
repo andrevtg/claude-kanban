@@ -10,7 +10,7 @@
 
 import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { workDir } from "../paths.js";
+import { diffPath, workDir } from "../paths.js";
 import type { Run } from "../../protocol/index.js";
 import type { Store } from "../store/index.js";
 
@@ -81,6 +81,15 @@ export async function sweepStaleWorktrees(
     try {
       await rm(join(dir, name), { recursive: true, force: true });
       removed.push(name);
+      // Best-effort: drop the matching patch file. Same age threshold
+      // applies; logged but not surfaced if it fails.
+      try {
+        await rm(diffPath(name), { force: true });
+      } catch (e) {
+        process.stderr.write(
+          `[supervisor] sweep failed to remove diff for ${name}: ${e instanceof Error ? e.message : String(e)}\n`,
+        );
+      }
     } catch (e) {
       // Surface but don't fail the whole sweep; the directory stays and
       // will be retried on the next supervisor construction.

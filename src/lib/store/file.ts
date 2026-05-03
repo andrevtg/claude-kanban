@@ -162,7 +162,7 @@ export function fileStore(): Store {
       await atomicWriteJson(cardFile(cardId), merged);
     },
 
-    async patchRun(cardId: string, runId: string, patch: Partial<Run>): Promise<void> {
+    async updateRun(cardId: string, runId: string, patch: Partial<Run>): Promise<Run> {
       const existing = await readJson(cardFile(cardId), (raw) => CardSchema.parse(raw));
       if (!existing) throw new CardNotFoundError(cardId);
       const idx = existing.runs.findIndex((r) => r.id === runId);
@@ -178,6 +178,7 @@ export function fileStore(): Store {
         updatedAt: nowIso(),
       });
       await atomicWriteJson(cardFile(cardId), merged);
+      return updated;
     },
 
     async appendEvent(runId: string, entry: EventLogEntry): Promise<void> {

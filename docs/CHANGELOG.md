@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-03 — phase-4/task-01 — capture git diff after successful runs; persist diffStat; serve patch via `GET /api/cards/:id/runs/:runId/diff`; render diff pane in card drawer; sweep stale patches alongside worktrees
 - 2026-05-03 — tasks/phase-4 — refine task-01 docs, task-02 worker lifecycle, task-04 confirmation invalidation
 - 2026-05-03 — tasks/phase-4 — expand stubs into real task files
 - 2026-05-03 — phase-3/task-05 — cooperative cancel in worker (stdin reader → `query.interrupt()`), stale-worktree sweep on supervisor construction, Cancel button on active run in drawer + board card, run-done watcher refreshes card on SSE `done`
