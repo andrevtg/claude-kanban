@@ -185,6 +185,15 @@ parallel `sweepStaleDiffs`) so `~/.claude-kanban/diffs/<runId>.patch`
 is removed alongside its worktree. Same age threshold, same orphan
 semantics. Tests added.
 
+### Documentation updates
+
+- `docs/01-architecture.md` data-model: add `diffs/<runId>.patch`
+  alongside the existing `logs/` and `work/` entries. One sentence:
+  "Per-run patch files; managed by the same stale-run sweep as
+  worktrees."
+- `docs/01-architecture.md` "Failure modes worth designing for":
+  new row (specified below).
+
 ### Failure-mode row
 
 Append to `docs/01-architecture.md` "Failure modes worth designing for":

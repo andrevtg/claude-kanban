@@ -121,6 +121,11 @@ codes as part of `messages.ts` and round-trip-test each in
 arbitrary `code: string` so no schema change is required; only the
 documentation and tests gain rows.
 
+`RunInitPayloadSchema` gains
+`approveTimeoutMs: z.number().int().positive().optional()` so the
+supervisor can configure the worker's post-SDK approval-window
+duration (default `15 * 60 * 1000` if absent). Round-trip test added.
+
 ### Worker integration (`src/worker/index.ts`)
 
 After the run completes successfully and `diff_ready` is sent, do not
@@ -130,9 +135,9 @@ until either:
 - `approve_pr` arrives → call `openPr`; on success emit `pr_opened`,
   on failure emit `error` with the appropriate code; either way exit
   after the response is sent.
-- A wall-clock timeout fires (default 60s after `diff_ready`) → emit
-  no further messages and exit. The supervisor's existing close-on-exit
-  path runs.
+- A wall-clock timeout fires (default `init.approveTimeoutMs`, see
+  below) → emit no further messages and exit. The supervisor's
+  existing close-on-exit path runs.
 - Stdin closes → exit.
 
 The cooperative-cancel reader from phase-3/task-05 is already running
@@ -142,6 +147,39 @@ loop in the file's top comment.
 
 Skip the post-SDK loop entirely when `agentExit !== 0` (no PR for a
 failed run).
+
+#### Worker lifecycle change
+
+This task is the first time the worker has a lifecycle phase beyond
+the SDK loop. Treat it as a meaningful change from phases 1-3, not
+just a wire-protocol addition.
+
+1. **Two lifecycle phases.** The worker now has SDK execution
+   (unchanged from phase 1) and a post-SDK approval window (new). The
+   `done` wire message is emitted only when the worker is about to
+   exit, not when the SDK loop completes. Anything downstream that
+   treated SDK-loop-completion and worker-exit as the same instant
+   needs to pick which one it actually meant.
+
+2. **Cancel during the approval window.** If `cancel` arrives during
+   the approval window, the worker exits immediately with `done`;
+   `pr_opened` is never emitted. The supervisor's existing escalation
+   timers (5s SIGTERM, 5s SIGKILL from phase-1/task-05) continue to
+   apply as a backstop in case the worker hangs in the approval loop
+   itself.
+
+3. **Configurable approval timeout.** The 60s wall-clock default is
+   replaced by a configurable `approveTimeoutMs` field on
+   `RunInitPayload`, defaulting to `15 * 60 * 1000` (15 minutes).
+   Rationale: long enough that "user got distracted and came back"
+   works; short enough that abandoned cards don't keep workers alive
+   indefinitely.
+
+4. **`Run.endedAt` semantics.** `endedAt` is set when the worker
+   exits, not when the SDK loop completes. For runs that wait in the
+   approval window, `endedAt` reflects the worker's full lifetime
+   including the wait. Document this as a one-sentence note in the
+   data-model section of `docs/01-architecture.md`.
 
 ### Supervisor persistence (`src/lib/supervisor/index.ts`)
 

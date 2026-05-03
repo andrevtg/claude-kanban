@@ -92,6 +92,8 @@ type Run = {
 };
 ```
 
+`endedAt` is set when the worker exits, not when the SDK loop completes; for runs that wait in phase-4/task-02's post-SDK approval window, `endedAt` reflects the worker's full lifetime including that wait.
+
 ## Wire protocol (Next.js ↔ Worker)
 
 Bidirectional NDJSON over stdio. One JSON object per line.

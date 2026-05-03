@@ -115,6 +115,15 @@ In `src/components/card-drawer.tsx` (and any other Run trigger):
 A card with `loadSkills: false` runs with no confirmation — the
 default path is the cheap path.
 
+Confirmation is invalidated when `loadSkills` is patched on the
+card (in either direction). Toggling off and back on resets the
+confirmed state for that card; the next Run shows the modal again.
+Implementation: store the confirmation key as
+`<cardId>:<loadSkills-state>` so toggling produces a different
+key, or clear the card from sessionStorage on PATCH that
+modifies loadSkills. Either approach is acceptable; document the
+chosen one in `card-drawer.tsx`'s top comment.
+
 ### Documentation updates
 
 `docs/02-agent-sdk-usage.md`:
@@ -189,17 +198,22 @@ Manual acceptance — verify each visible state:
    with `settingSources: []`. The card's confirmed-this-session
    set is irrelevant; the field on disk is what gates the SDK
    options.
-10. **Trace records `Skill` calls.** With task-03's trace active
+10. **Confirmation invalidates on toggle.** With a card that's
+    `loadSkills: true` and confirmed in this session, edit the
+    card to set `loadSkills: false`, then back to `true`. Click
+    Run. The confirmation modal appears again. The toggle-off-and-
+    on cycle reset the trust state.
+11. **Trace records `Skill` calls.** With task-03's trace active
     and skills loaded, any `Skill` tool calls appear in
     `~/.claude-kanban/traces/<runId>.jsonl` like any other tool.
-11. **Protocol round-trip.** `node --test src/protocol/messages.test.ts`
+12. **Protocol round-trip.** `node --test src/protocol/messages.test.ts`
     passes including the new `loadSkills` field on
     `RunInitPayload`.
-12. **Store tests.** `node --test src/lib/store/*.test.ts` passes
+13. **Store tests.** `node --test src/lib/store/*.test.ts` passes
     including create-with-true, create-without (defaults to
     false), patch-to-true, patch-to-false, and
     read-of-legacy-card-without-field.
-13. **Worker test.** `node --test src/worker/run.test.ts` passes
+14. **Worker test.** `node --test src/worker/run.test.ts` passes
     including a case that asserts `settingSources` and
     `allowedTools` are set correctly for both values of
     `loadSkills`.
@@ -250,6 +264,9 @@ spirit even if its mechanism differs.
 - Per-skill enable/disable. v1 is all-or-nothing per card.
 - A persistent "I trust this repo" preference that survives session
   close. Deliberately rejected: re-confirmation is a feature.
+- A "sticky" confirmation that survives toggling loadSkills off
+  and back on. Deliberately rejected: a state change is a clear
+  "I changed my mind" signal that should require fresh consent.
 - MCP server configuration, the Managed Agents port itself,
   multi-repo per card, multi-PR per run, scheduled runs, watch
   mode, deployable form — deferred to phase 5+.
