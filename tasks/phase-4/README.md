@@ -1,24 +1,17 @@
-# Phase 4 — Stubs
+# Phase 4
 
-## task-01 — Git diff capture
+See individual task files in this directory:
 
-After the SDK run finishes successfully, the worker runs `git diff --stat` and `git diff` on the worktree, emits a `diff_ready` message with stat and full patch.
+- `task-01-git-diff.md` — capture `git diff --stat` and the full patch
+  after a successful run; render in the drawer's diff pane
+- `task-02-gh-pr-create.md` — push branch and open a PR via the GitHub
+  CLI on user approval; pre-flight `gh` install/auth state; ADR-010
+- `task-03-pretooluse-hook.md` — `PreToolUse` hook records every tool
+  call to `~/.claude-kanban/traces/<runId>.jsonl`; drawer trace pane
+- `task-04-skill-loading-toggle.md` — per-card opt-in for loading
+  skills from `<repoPath>/.claude/skills/`; default off, per-session
+  re-confirmation
 
-## task-02 — `gh pr create` integration
-
-When the user clicks "Open PR" on a card in `review` status, parent sends `approve_pr` with title/body to the worker. Worker:
-1. `git push -u origin <branchName>`
-2. `gh pr create --title ... --body ... --base <baseBranch> --head <branchName>`
-3. Emits `pr_opened` with the URL.
-
-If `gh` is missing or unauthenticated, surface a clear card-level error and disable the button.
-
-## task-03 — `PreToolUse` hook for tracing
-
-Add a `PreToolUse` hook in worker `runAgent`. Records `(timestamp, tool, args)` to a separate trace file at `~/.claude-kanban/traces/<runId>.jsonl`. UI can render this as a "what the agent did" timeline distinct from the streaming log.
-
-## task-04 — Skill loading toggle
-
-Per-card option: "Load skills from `<repoPath>/.claude/skills/`?" When true, worker passes `settingSources: ["project"]` and includes `Skill` in `allowedTools`. Document the security implication: the user is trusting whatever skills exist in that repo.
-
-**Phase-4 done when:** Successful runs produce real PRs. Skill loading is opt-in per card.
+**Phase-4 done when:** Successful runs produce real PRs. Skill loading
+is opt-in per card. Every tool call is traced. Diffs are visible in
+the drawer.

@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-03 — tasks/phase-4 — expand stubs into real task files
 - 2026-05-03 — phase-3/task-05 — cooperative cancel in worker (stdin reader → `query.interrupt()`), stale-worktree sweep on supervisor construction, Cancel button on active run in drawer + board card, run-done watcher refreshes card on SSE `done`
 - 2026-05-03 — phase-3/task-04 — card detail drawer: clicking a board card opens a side panel with metadata, run history, and a per-run event log via `<RunLog key={runId}>`; Run/Edit/Delete affordances integrate with existing endpoints and shared local state
 - 2026-05-03 — phase-3/task-03 — add settings page and `/api/settings` (GET/PUT) with apiKeyPath validation, inline-key write to 0600 file, allowlist editor, and defaultRepoPath prefill in card create form
