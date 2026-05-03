@@ -105,3 +105,40 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Rationale.** Phase 1-3 tests are pure-module tests (protocol round-trips, store CRUD, supervisor invariants, NDJSON parsing). Vitest's ergonomic advantages are minimal at this scale. CLAUDE.md's hard rule on dependencies says additions need an architectural justification, and "ergonomics after the fact" doesn't clear that bar.
 
 **Trade-offs.** Less expressive matchers; clunkier watch mode; no built-in mocking. Acceptable for the test surface we have. Revisit if phase 2-3 component tests become unwieldy — at that point a Vitest ADR with a real ergonomic-limit citation would be a clean addition, not a retrofit.
+
+---
+
+## ADR-007: Cooperative cancellation via stdin reader, signals as backstop
+
+**Date:** 2026-05-02
+**Status:** accepted
+
+**Context.** Phase-1 task-05 implemented `Supervisor.cancel` as SIGTERM-after-5s, SIGKILL-after-another-5s. That works but feels unresponsive — clicking Cancel in the UI takes 5+ seconds to register an event, and the SDK has no chance to drain a final result message cleanly. Phase-3 task-05 adds cooperative cancel.
+
+**Decision.** Workers run a stdin reader concurrently with the SDK iterator. On a `{ type: "cancel" }` wire message, the reader calls `query.interrupt()`, which lets the SDK loop drain to a terminal result message before the worker exits. The supervisor's SIGTERM/SIGKILL escalation timers stay as a backstop for the case where the worker is itself stuck (e.g., infinite loop in a tool result handler).
+
+**Alternatives.**
+
+- *Signals only.* The phase-1 implementation. Simpler but slow and loses the final result message.
+- *AbortController throughout.* More idiomatic Node, but the SDK's own interrupt API is what the project already targets, and adding an AbortController would be a parallel mechanism doing the same job.
+
+**Trade-offs.** Worker code becomes more complex (two loops to keep in sync). Backstop signals are still required because cooperative cancel can hang if the worker itself is stuck. The exact concurrency primitive (Promise.race, generator pump, AbortController) is an implementation detail; task-05 leaves it to the implementor's choice documented inline.
+
+---
+
+## ADR-008: Stale-run worktree sweep policy
+
+**Date:** 2026-05-02
+**Status:** accepted
+
+**Context.** Worktrees under `~/.claude-kanban/work/<run_id>/` are intentionally kept after a run completes (commit aa2d1db; corrected the phase-2 cleanup-on-success bug). Without pruning, they accumulate indefinitely.
+
+**Decision.** A sweep runs once per supervisor construction (i.e. once per Next.js process / HMR cycle). It removes worktrees whose owning run has `endedAt` set and is older than 24h. It keeps worktrees with no `endedAt` (active or crashed-without-flush) and orphans (no matching card). Orphans are logged but never auto-deleted.
+
+**Alternatives.**
+
+- *Continuous schedule (every N hours).* Adds a long-lived timer to the supervisor; over-engineered for a single-user localhost tool where Next.js dev cycles are short.
+- *Eager orphan cleanup.* Risky — an orphan might be a card whose JSON didn't flush, and deleting the worktree destroys forensic evidence. Logging is safer.
+- *Cleanup on run completion.* Already explicitly rejected (commit aa2d1db); worktrees must persist for inspection and for phase-4 PR creation.
+
+**Trade-offs.** Long-lived dev sessions accumulate worktrees until restart. 24h threshold is conservative — runs older than that are unlikely to be of interest, but a future "demo on Monday what I built on Friday" use case might want to bump it. Threshold is configurable via `opts.maxAgeMs`.
