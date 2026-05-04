@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-04 — phase-5/task-02 — error-state UX audit: new `<ErrorCard />` reusable surface with Retry + Copy details affordances; applied to card-form / settings-form / card-delete-confirm / run-card / run-diff / run-trace / pr-affordance / card-drawer (run-start error split from "active run" notice) / board-card / run-log (Reconnect on unexpected SSE close); new global `app/error.tsx` route boundary; `<LoadBanner />` on home + settings pages catches `StoreReadError` from `listCards()` / `getSettings()` so the app boots in defaults mode; cross-card 404 special-cased in card-form ("this card no longer exists") and card-delete-confirm (treat as success); audit recorded in `docs/04-error-states-audit.md` with a live-trigger checklist for dynamic surfaces; architecture doc's failure-mode table extended with the new rows
 - 2026-05-04 — phase-5/task-01 — ESLint module-boundary rule via `no-restricted-imports` (zero new deps); shared boundary blocks in `eslint.boundaries.js`, dedicated `eslint.config.boundaries.js` for synthetic fixtures under `tests/eslint-boundaries/`, new `pnpm lint:boundaries` + `pnpm lint:all` scripts; ADR-011 records the tool choice
 - 2026-05-04 — tasks/phase-5 — fix task-02 acceptance numbering
 - 2026-05-04 — tasks/phase-5 — expand stubs into real task files

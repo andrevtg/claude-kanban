@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-5 / task-02 — Error-state UX audit
 
 ## Goal

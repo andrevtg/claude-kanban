@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
 import type { Card, EventLogEntry, Run } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 type GhStatus =
   | { state: "ok"; version: string; account: string }
@@ -267,22 +268,31 @@ export function PrAffordance({
       ) : null}
 
       {phase.kind === "error" ? (
-        <div className="mt-2 rounded-sm border border-red-300 bg-red-50 p-2 text-xs text-red-800">
-          <div className="font-semibold">{phase.code}</div>
-          <pre className="mt-1 whitespace-pre-wrap font-mono text-[11px]">{phase.message}</pre>
-          <button
-            type="button"
-            onClick={() => setPhase({ kind: "composing" })}
-            className="mt-2 rounded-sm border border-red-400 bg-white px-2 py-0.5 text-xs font-medium text-red-700 hover:bg-red-100"
-          >
-            Try again
-          </button>
+        <div className="mt-2">
+          <ErrorCard
+            title={phase.code}
+            message={phase.message}
+            details={[
+              { label: "Card", value: card.id },
+              { label: "Run", value: run.id },
+            ]}
+            onRetry={() => setPhase({ kind: "composing" })}
+            size="inline"
+          />
         </div>
       ) : null}
 
       {phase.kind === "warning" ? (
-        <div className="mt-2 rounded-sm border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800">
-          {phase.message}
+        <div className="mt-2">
+          <ErrorCard
+            tone="warning"
+            message={phase.message}
+            details={[
+              { label: "Card", value: card.id },
+              { label: "Run", value: run.id },
+            ]}
+            size="inline"
+          />
         </div>
       ) : null}
     </div>

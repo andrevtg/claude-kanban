@@ -3,6 +3,7 @@
 import { useState, type ReactElement } from "react";
 import type { Card } from "../protocol/index.js";
 import { RunLog } from "./run-log.js";
+import { ErrorCard } from "./error-card.js";
 
 type RunHandleResponse = {
   runId: string;
@@ -78,25 +79,33 @@ export function RunCard({ card }: { card: Card }): ReactElement {
           <dd className="font-mono">{card.baseBranch}</dd>
         </dl>
       </header>
-      <div className="flex items-center gap-3 border-b border-slate-200 p-4">
-        <button
-          type="button"
-          onClick={onRun}
-          disabled={running}
-          className="rounded-sm bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
-        >
-          {running ? "Running…" : "Run"}
-        </button>
+      <div className="flex flex-col gap-3 border-b border-slate-200 p-4">
+        <div>
+          <button
+            type="button"
+            onClick={onRun}
+            disabled={running}
+            className="rounded-sm bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {running ? "Running…" : "Run"}
+          </button>
+        </div>
         {startError ? (
-          <span className="text-sm text-red-700">
-            {startError.message}
-            {startError.activeRunId ? (
-              <>
-                {" "}
-                <span className="font-mono">({startError.activeRunId})</span>
-              </>
-            ) : null}
-          </span>
+          <ErrorCard
+            message={
+              startError.activeRunId
+                ? `${startError.message} (${startError.activeRunId})`
+                : startError.message
+            }
+            details={[
+              { label: "Card", value: card.id },
+              ...(startError.activeRunId
+                ? [{ label: "Active run", value: startError.activeRunId }]
+                : []),
+            ]}
+            onRetry={() => void onRun()}
+            size="inline"
+          />
         ) : null}
       </div>
       {runId ? (

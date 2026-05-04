@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactElement } from "react";
 import { DEFAULT_BASH_ALLOWLIST, DEFAULT_MODEL, type GlobalSettings } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 type ZodIssue = { path: (string | number)[]; message: string };
 
@@ -343,9 +344,12 @@ export function SettingsForm({ initial }: { initial: GlobalSettings | null }): R
       </section>
 
       {formError ? (
-        <p className="text-sm text-red-700" role="alert">
-          {formError}
-        </p>
+        <ErrorCard
+          title="Settings save failed"
+          message={formError}
+          details={[{ label: "Endpoint", value: "PUT /api/settings" }]}
+          hint="If the path was rejected, verify ~/.claude-kanban/ exists and the file is writable."
+        />
       ) : null}
       {savedAt ? (
         <p className="text-sm text-emerald-700" role="status">

@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactElement } from "react";
 import type { Card, CardStatus } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 const STATUSES: CardStatus[] = ["backlog", "ready", "running", "review", "done", "failed"];
 
@@ -85,6 +86,13 @@ export function CardForm(props: Props): ReactElement {
       if (res.ok) {
         const card = (await res.json()) as Card;
         onSuccess(card);
+        return;
+      }
+
+      if (res.status === 404 && mode === "edit") {
+        setFormError(
+          `This card no longer exists. It may have been deleted in another tab; refresh the board.`,
+        );
         return;
       }
 
@@ -220,9 +228,13 @@ export function CardForm(props: Props): ReactElement {
       ) : null}
 
       {formError ? (
-        <p className="text-sm text-red-700" role="alert">
-          {formError}
-        </p>
+        <ErrorCard
+          message={formError}
+          details={[
+            { label: "Mode", value: mode },
+            ...(initial ? [{ label: "Card", value: initial.id }] : []),
+          ]}
+        />
       ) : null}
 
       <div className="flex items-center gap-2">

@@ -153,6 +153,10 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 | Diff capture fails after a successful run | Run still marked `done`; worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |
 | Trace write fails mid-run | Worker emits a single `worker warn` event; tracing degrades to best-effort; the run continues. |
 | Skill loading enabled but `<repoPath>/.claude/skills/` is missing | SDK loads from `["project"]` with no skills present; run proceeds normally; event log notes the empty skills load. |
+| Settings file is corrupt or schema-mismatched on boot | Home and settings pages catch `StoreReadError`, render with defaults, and surface a `<LoadBanner tone="warning">` so the app still boots; resaving from /settings overwrites the bad file. |
+| Card JSON corrupt on disk — `listCards()` throws | Home page catches the throw, renders an empty board plus a `<LoadBanner tone="error">` pointing at `~/.claude-kanban/cards/`; an uncaught throw still falls through to `app/error.tsx` which has Retry + Copy details. |
+| SSE stream closes before a `done` arrives | `<RunLog />` surfaces an `<ErrorCard />` with Reconnect that re-mounts the EventSource and replays the NDJSON log. |
+| Card edited or deleted after another tab removed it (cross-card 404) | `<CardForm mode="edit" />` shows "this card no longer exists" with Copy details; `<CardDeleteConfirm />` treats 404 as success and converges the local state. |
 
 ## Out of scope (and why)
 

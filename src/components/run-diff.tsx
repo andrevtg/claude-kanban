@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactElement } from "react";
 import type { DiffStat } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 type FileSection = {
   header: string;
@@ -87,15 +88,16 @@ export function RunDiff({
 
   if (state.kind === "error") {
     return (
-      <div className="p-4 text-xs text-red-700">
-        <p>{state.message}</p>
-        <button
-          type="button"
-          onClick={() => setReloadKey((n) => n + 1)}
-          className="mt-2 rounded-sm border border-red-300 px-2 py-0.5 text-xs hover:bg-red-50"
-        >
-          Retry
-        </button>
+      <div className="p-4">
+        <ErrorCard
+          title="Failed to load diff"
+          message={state.message}
+          details={[
+            { label: "Endpoint", value: `/api/cards/${cardId}/runs/${runId}/diff` },
+            { label: "Run", value: runId },
+          ]}
+          onRetry={() => setReloadKey((n) => n + 1)}
+        />
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunCard } from "./run-card.js";
 import { CancelButton } from "./cancel-button.js";
+import { ErrorCard } from "./error-card.js";
 
 export type BoardCardAction = { kind: "edit" } | { kind: "delete" } | { kind: "run" } | null;
 
@@ -99,9 +100,17 @@ export function BoardCard({
         </p>
       ) : null}
       {inlineError ? (
-        <p className="mt-2 text-xs text-red-700" role="alert">
-          {inlineError}
-        </p>
+        <div
+          className="mt-2"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ErrorCard
+            message={inlineError}
+            details={[{ label: "Card", value: card.id }]}
+            size="inline"
+          />
+        </div>
       ) : null}
 
       {action?.kind === "edit" ? (

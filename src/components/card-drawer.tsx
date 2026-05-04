@@ -18,6 +18,7 @@ import { RunDiff } from "./run-diff.js";
 import { RunTrace } from "./run-trace.js";
 import { CancelButton } from "./cancel-button.js";
 import { PrAffordance } from "./pr-affordance.js";
+import { ErrorCard } from "./error-card.js";
 
 type RunHandleResponse = {
   runId: string;
@@ -107,7 +108,8 @@ export function CardDrawer({
   const [pane, setPane] = useState<Pane>("log");
   const [mode, setMode] = useState<Mode>({ kind: "view" });
   const [runStarting, setRunStarting] = useState(false);
-  const [runMessage, setRunMessage] = useState<string | null>(null);
+  const [runNotice, setRunNotice] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const [skillsConfirmOpen, setSkillsConfirmOpen] = useState(false);
 
   // Reset to latest run + view mode whenever the drawer opens for a
@@ -118,7 +120,8 @@ export function CardDrawer({
     const latest = card.runs[card.runs.length - 1];
     setSelectedRunId(latest?.id ?? null);
     setMode({ kind: "view" });
-    setRunMessage(null);
+    setRunNotice(null);
+    setRunError(null);
   }, [card?.id]);
 
   // Close on Escape.
@@ -138,7 +141,8 @@ export function CardDrawer({
 
   async function onRun(): Promise<void> {
     if (!card) return;
-    setRunMessage(null);
+    setRunNotice(null);
+    setRunError(null);
     if (card.loadSkills && !isSkillsConfirmed(card.id, card.loadSkills)) {
       setSkillsConfirmOpen(true);
       return;
@@ -149,6 +153,7 @@ export function CardDrawer({
   async function actuallyRun(): Promise<void> {
     if (!card) return;
     setRunStarting(true);
+    setRunError(null);
     try {
       const res = await fetch(`/api/cards/${card.id}/run`, { method: "POST" });
       if (res.ok) {
@@ -162,18 +167,18 @@ export function CardDrawer({
         const body = (await res.json().catch(() => ({}))) as RunActiveError;
         if (body.runId) {
           setSelectedRunId(body.runId);
-          setRunMessage(`A run is already active (${body.runId}).`);
+          setRunNotice(`A run is already active (${body.runId}).`);
         } else {
-          setRunMessage("A run is already active.");
+          setRunNotice("A run is already active.");
         }
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
-      setRunMessage(
+      setRunError(
         `Failed to start run (${res.status}): ${body.message ?? body.error ?? "unknown"}`,
       );
     } catch (e) {
-      setRunMessage(e instanceof Error ? e.message : String(e));
+      setRunError(e instanceof Error ? e.message : String(e));
     } finally {
       setRunStarting(false);
     }
@@ -232,12 +237,27 @@ export function CardDrawer({
           >
             Delete
           </button>
-          {runMessage ? (
+          {runNotice ? (
             <span className="ml-2 truncate text-xs text-amber-700" role="status">
-              {runMessage}
+              {runNotice}
             </span>
           ) : null}
         </div>
+
+        {runError ? (
+          <div className="border-b border-slate-200 px-4 py-3">
+            <ErrorCard
+              title="Run failed to start"
+              message={runError}
+              details={[
+                { label: "Card", value: card.id },
+                { label: "Endpoint", value: `POST /api/cards/${card.id}/run` },
+              ]}
+              onRetry={() => void actuallyRun()}
+              size="inline"
+            />
+          </div>
+        ) : null}
 
         {mode.kind === "edit" ? (
           <div className="border-b border-slate-200 p-4">

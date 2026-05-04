@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import type { EventLogEntry, SDKMessage } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 type Row =
   | { kind: "init"; key: number; model: string; cwd: string }
@@ -29,6 +30,8 @@ export function RunLog({
 }): ReactElement {
   const [rows, setRows] = useState<Row[]>([]);
   const [closed, setClosed] = useState(false);
+  const [streamClosedUnexpectedly, setStreamClosedUnexpectedly] = useState(false);
+  const [reconnectKey, setReconnectKey] = useState(0);
   const counter = useRef(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stickToBottom = useRef(true);
@@ -43,6 +46,7 @@ export function RunLog({
   useEffect(() => {
     const es = new EventSource(`/api/cards/${cardId}/runs/${runId}/events`);
     let active = true;
+    let receivedDone = false;
 
     const append = (next: Row[]): void => {
       if (!active || next.length === 0) return;
@@ -75,6 +79,7 @@ export function RunLog({
         // best-effort; default to 0
       }
       append([{ kind: "done", key: counter.current++, exitCode }]);
+      receivedDone = true;
       setClosed(true);
       es.close();
       onDoneRef.current?.(exitCode);
@@ -93,6 +98,9 @@ export function RunLog({
           },
         ]);
         setClosed(true);
+        // If we never saw a `done`, the stream went away without telling us
+        // the run actually finished. Surface a Reconnect affordance.
+        if (!receivedDone) setStreamClosedUnexpectedly(true);
       }
     };
 
@@ -107,7 +115,7 @@ export function RunLog({
       es.removeEventListener("error", onErr);
       es.close();
     };
-  }, [cardId, runId]);
+  }, [cardId, runId, reconnectKey]);
 
   // Auto-scroll to bottom unless the user scrolled up.
   useEffect(() => {
@@ -140,6 +148,26 @@ export function RunLog({
           rows.map((r) => <LogRow key={r.key} row={r} />)
         )}
       </div>
+      {streamClosedUnexpectedly ? (
+        <div className="border-t border-slate-200 bg-white p-3">
+          <ErrorCard
+            title="Stream closed before run finished"
+            message="The browser lost the SSE connection without seeing a terminal `done` event. The worker may still be running on the server; reconnect to resume the live tail."
+            details={[
+              { label: "Run", value: runId },
+              { label: "Card", value: cardId },
+            ]}
+            onRetry={() => {
+              setStreamClosedUnexpectedly(false);
+              setClosed(false);
+              setRows([]);
+              counter.current = 0;
+              setReconnectKey((n) => n + 1);
+            }}
+            size="inline"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

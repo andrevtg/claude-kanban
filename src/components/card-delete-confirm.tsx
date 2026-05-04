@@ -2,6 +2,7 @@
 
 import { useState, type ReactElement } from "react";
 import type { Card } from "../protocol/index.js";
+import { ErrorCard } from "./error-card.js";
 
 export function CardDeleteConfirm({
   card,
@@ -21,6 +22,13 @@ export function CardDeleteConfirm({
     try {
       const res = await fetch(`/api/cards/${card.id}`, { method: "DELETE" });
       if (res.status === 204) {
+        onDeleted();
+        return;
+      }
+      if (res.status === 404) {
+        // Already gone — treat as success so the UI converges instead of
+        // making the user click again. This is the cross-card 404 case
+        // from phase-5/task-02 acceptance #32.
         onDeleted();
         return;
       }
@@ -44,9 +52,16 @@ export function CardDeleteConfirm({
         run history.
       </p>
       {error ? (
-        <p className="mt-2 text-sm text-red-700" role="alert">
-          {error}
-        </p>
+        <div className="mt-2">
+          <ErrorCard
+            message={error}
+            details={[
+              { label: "Card", value: card.id },
+              { label: "Endpoint", value: `DELETE /api/cards/${card.id}` },
+            ]}
+            onRetry={() => void onConfirm()}
+          />
+        </div>
       ) : null}
       <div className="mt-3 flex items-center gap-2">
         <button
