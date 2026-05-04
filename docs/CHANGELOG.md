@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-04 — phase-5/task-01 — ESLint module-boundary rule via `no-restricted-imports` (zero new deps); shared boundary blocks in `eslint.boundaries.js`, dedicated `eslint.config.boundaries.js` for synthetic fixtures under `tests/eslint-boundaries/`, new `pnpm lint:boundaries` + `pnpm lint:all` scripts; ADR-011 records the tool choice
 - 2026-05-04 — tasks/phase-5 — fix task-02 acceptance numbering
 - 2026-05-04 — tasks/phase-5 — expand stubs into real task files
 - 2026-05-04 — phase-4/task-04 — per-card `loadSkills` toggle: Card schema field (default false, legacy-tolerant), `RunInitPayload` carries it, supervisor passes it through, worker flips `settingSources: ["project"]` and adds `Skill` to `allowedTools` when on; card-form checkbox + drawer per-session per-card confirmation modal (sessionStorage, key `<cardId>:<state>`, cleared on toggle change); docs updated

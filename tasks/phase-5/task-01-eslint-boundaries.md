@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-5 / task-01 — ESLint module-boundary rule
 
 ## Goal

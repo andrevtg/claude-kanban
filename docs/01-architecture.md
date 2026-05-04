@@ -46,7 +46,7 @@ src/
 └── types/                  Ambient type declarations for non-TS assets (e.g. CSS imports). No runtime code.
 ```
 
-**Hard rule:** `src/worker/` and `src/lib/` must not import each other. `src/protocol/` is the only shared surface. Enforce with a lint rule in phase 5. These rules apply to `import type` as well as value imports; type-only coupling is still coupling.
+**Hard rule:** `src/worker/` and `src/lib/` must not import each other. `src/protocol/` is the only shared surface. Enforced at lint time by `no-restricted-imports` rules in `eslint.boundaries.js` (see ADR-011); `pnpm lint` is the gate, and `pnpm lint:boundaries` exercises synthetic-violation fixtures under `tests/eslint-boundaries/` to guard against the rules silently regressing. These rules apply to `import type` as well as value imports; type-only coupling is still coupling.
 
 `src/types/` is ambient-only: any file may rely on its declarations (they're picked up by the compiler globally), but `src/types/` itself must not import from `src/worker/`, `src/lib/`, `src/app/`, or `src/components/`. Ambient declarations should be self-contained.
 

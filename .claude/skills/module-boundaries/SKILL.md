@@ -65,7 +65,7 @@ The architectural goal is a clean port to **Claude Managed Agents** later. In th
 
 That port is only tractable because the worker is reachable from one place (`src/lib/supervisor/`) through one contract (`src/protocol/`). Every cross-import we tolerate is one more thing to untangle on port day. ADR-001 in `docs/03-decisions.md` and the "Module boundaries" section of `docs/01-architecture.md` are the long-form versions.
 
-A phase-5 ESLint rule (`eslint-plugin-boundaries`, see `tasks/phase-5/README.md` task-01) will mechanically enforce all of this. Until then, the rules are on you.
+These rules are also lint-enforced as of phase-5/task-01. `eslint.boundaries.js` encodes them via `no-restricted-imports`; `pnpm lint` fails on any violation in `src/`, and `pnpm lint:boundaries` runs synthetic-violation fixtures so the rules can't silently regress. See ADR-011 in `docs/03-decisions.md`. The skill still has value — it catches mistakes before the file is saved, so you don't need to wait for lint — but the lint rule is the formal gate.
 
 ## What to do when you think you need to break the rule
 

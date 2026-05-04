@@ -183,3 +183,28 @@ Lightweight ADR-style log. Each decision: context, choice, alternatives, rationa
 **Local mode vs. Managed Agents.** Managed Agents bundles git auth into the sandbox; PR creation moves into a tool the agent calls (or the GitHub MCP server) rather than a worker-level wrapper around `gh`. The local-mode dependency on `gh` does not port forward.
 
 **Trade-offs.** Users without `gh` cannot open PRs from the UI; they can still run the agent and inspect the diff. The pre-flight surfaces this clearly so it's a visible disable, not a runtime crash.
+
+---
+
+## ADR-011: Module boundaries enforced by `no-restricted-imports`, not a plugin
+
+**Date:** 2026-05-04
+**Status:** accepted
+
+**Context.** Phase-5/task-01 closes the gap that `docs/01-architecture.md`'s "Module boundaries" section was, until now, only enforced by prose, code review, and the `module-boundaries` skill. Lint had nothing to say about a future contributor adding `import type { Foo } from "../worker/bar"` from `src/lib/`. We need a mechanical gate.
+
+**Decision.** Encode the boundary rules using ESLint's built-in `no-restricted-imports` rule, parameterized once in `eslint.boundaries.js` and reused from both the project lint config (`eslint.config.js`) and a fixtures-only config (`eslint.config.boundaries.js`) exercised by `pnpm lint:boundaries`. The rule fires on both value and type imports (ESLint applies `no-restricted-imports` to `import type` as well, satisfying the architecture doc's "type-only coupling is still coupling" clause). Each forbidden pair carries a single-line message naming source element, target element, and pointing at this ADR plus `docs/01-architecture.md`.
+
+**Alternatives considered.**
+
+- *`eslint-plugin-boundaries`*. Purpose-built for exactly this case, with element-typed graphs and an opinionated configuration surface. Rejected because it adds a fourth lint plugin alongside `@typescript-eslint`, `eslint-config-next`, and the resolver dance needed to make path-aliased imports resolve. The rule set we need is small (seven elements, one rule each) and a ~50-line wrapper around `no-restricted-imports` is more inspectable than a plugin's element graph for a single-developer project.
+- *Custom `@typescript-eslint`-style rule*. Maximally inspectable but reimplements glob matching and source-file-element classification by hand. Worth the complexity if the rule set grows beyond what `no-restricted-imports` patterns express; not worth it today.
+
+**Trade-offs / what this rule will not catch.**
+
+- Dynamic `await import()` or `require()` with a string-built path. The project does not use those across module boundaries; if it ever does, that's a separate ADR.
+- Indirection through a barrel or re-export inside an *allowed* module. If `src/lib/foo.ts` re-exports a type that originally came from `src/worker/`, a consumer in `src/components/` importing from `src/lib/foo.ts` is allowed by the rule but still couples to worker shape. The fix is process — code review, the `module-boundaries` skill — rather than additional lint.
+- Submodule-internal seams (e.g. `src/lib/store/` ↔ `src/lib/supervisor/`). The architecture doc treats `src/lib/` as one element; finer-grained internal rules are a "if it bites, write a follow-up" question.
+- Per-file allowlist exceptions are not supported by config. If one ever needs to land, document it inline with `// eslint-disable-next-line no-restricted-imports` plus a one-line reason and an ADR amendment.
+
+**Real-codebase impact.** Running `pnpm lint` against `src/` after the rule landed produced **zero** boundary violations. The skill-and-discipline regime had been holding; this ADR is preventive, not corrective.
