@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-04 — chore — `pnpm reset:runs` script (`src/cli/reset-runs.ts`): clears `runs[]` and resets `status` to `backlog` on every card via the file store, then removes all artifacts under `~/.claude-kanban/{work,traces,diffs,logs}/`. Dry-run by default; pass `--yes` to execute. Card identities and settings are preserved.
 - 2026-05-04 — chore — column-card delete confirm now opens as a centered viewport modal (via `createPortal` to `document.body`) rather than expanding inline within the ~280px column. Backdrop click and Escape both dismiss; drawer keeps its inline confirm because drawer width handles it fine.
 - 2026-05-04 — chore — drop Cancel button from column card; column card is now Open + Delete only (plus the running-pulse indicator). Cancel still lives in the drawer's run history. Architecture doc's status section + failure-modes table updated to describe the new run-driven card transitions.
 - 2026-05-04 — chore — auto-transition card status from the supervisor: `Supervisor.startRun` persists `status: "running"` after `appendRun`, and `Supervisor.finalize` persists `status: "review"` on exit 0 / `status: "failed"` otherwise. Previously status changes were entirely manual (drag-and-drop or edit form), so a drawer-launched run would optimistically appear in the running column then snap back to its prior status on the next refetch.
