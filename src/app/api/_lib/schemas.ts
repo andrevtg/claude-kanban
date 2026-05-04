@@ -11,6 +11,7 @@ export const NewCardBodySchema = z.object({
   repoPath: z.string().min(1),
   baseBranch: z.string().min(1),
   status: CardStatusSchema.optional(),
+  loadSkills: z.boolean().optional(),
 });
 export type NewCardBody = z.infer<typeof NewCardBodySchema>;
 
@@ -23,6 +24,7 @@ export const CardPatchSchema = z
     status: CardStatusSchema.optional(),
     repoPath: z.string().min(1).optional(),
     baseBranch: z.string().min(1).optional(),
+    loadSkills: z.boolean().optional(),
   })
   .strict();
 export type CardPatch = z.infer<typeof CardPatchSchema>;

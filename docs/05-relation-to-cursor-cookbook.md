@@ -81,6 +81,16 @@ When we port to Claude Managed Agents:
 - **Changes:** the worker module is mostly deleted. `query()` becomes a `POST /v1/sessions` call. `git worktree` and `gh pr create` move into MCP tools or get composed via the GitHub MCP server. Wall-clock timeout is replaced by Anthropic's session lifecycle.
 - **Net effect:** the local version is roughly 70% of the codebase the cloud version reuses. That's the whole point of getting the seams right now.
 
+## Divergence: per-card skill loading
+
+Cursor doesn't expose a per-task skill-loading toggle — its cloud sandbox has
+a fixed environment. Local mode (phase-4/task-04) adds a per-card toggle so
+the user can opt into project-level skills from the target repo. In the
+Managed Agents port (phase-5/task-04) this becomes a per-Environment
+configuration, not a per-card choice; the per-session re-confirmation flow
+may dissolve entirely if Environments themselves carry an "uses skills from
+this repo" attribute that the cloud surfaces with its own consent UI.
+
 ## Attribution and license
 
 The original cookbook is © Anysphere Inc., MIT-licensed. We thank the Cursor team for publishing it; the kanban-of-agents UX is a clean idea well executed and worth porting. This project is independent and not affiliated with Anysphere.

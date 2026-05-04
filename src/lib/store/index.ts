@@ -13,6 +13,7 @@ export type NewCardInput = {
   repoPath: string;
   baseBranch: string;
   status?: Card["status"];
+  loadSkills?: boolean;
 };
 
 export interface Store {

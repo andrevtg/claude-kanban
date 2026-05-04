@@ -40,7 +40,7 @@ for await (const message of query({
 - **`model`** defaults to `claude-opus-4-7`. The settings UI lets the user override globally and per-card.
 - **`allowedTools`** — minimal set for code edits and shell. We add `WebSearch` and `WebFetch` in phase 4 once we have a story for surfacing those calls in the UI.
 - **`permissionMode: "acceptEdits"`** auto-approves file edits because the worker is operating in a throwaway worktree, not the user's actual checkout. Bash commands still hit the default permission flow (in v1 the worker auto-approves them too — see "Permissions" below).
-- **`settingSources: []`** disables filesystem skill/CLAUDE.md loading. We don't want the worker to accidentally inherit settings from wherever Next.js was started. Phase 4 may flip `settingSources: ["project"]` and use the worktree's own `.claude/`.
+- **`settingSources: []`** is the default; flipped to `["project"]` per-card per phase-4/task-04 (see "Skills" below). With `[]` the SDK does not inherit user/project settings from wherever Next.js was started.
 - **`maxTurns: 250`** is generous; long-form coding tasks routinely exceed 50 turns. The supervisor enforces a wall-clock timeout (default 30 min) on top.
 
 ## Message types we handle
@@ -112,9 +112,36 @@ hooks: {
 
 Trace failures degrade silently after a single `worker warn: trace write failed` event so the run continues. The writer guarantees the trace file exists at close time even when no tool calls fired (zero-byte file documents that tracing was active).
 
-### Skills loading (deferred)
+## Skills
 
-Optional skills loading via `settingSources: ["project"]` is still phase 4 (task-04). Until then, the worker keeps `settingSources: []` so it doesn't inherit Next.js's environment.
+Skills loading is opt-in per card. The card carries a `loadSkills: boolean`
+field (default `false`); when the user runs a card with `loadSkills: true`,
+the worker:
+
+- passes `settingSources: ["project"]` to `query()`, and
+- adds `"Skill"` to `allowedTools` (de-duped against the supervisor's default
+  set).
+
+The SDK then loads skills from `<cwd>/.claude/skills/`. Because `cwd` is the
+worktree (which inherits the user repo's checked-in `.claude/` directory),
+this is equivalent to loading skills from `<repoPath>/.claude/skills/`.
+
+UI flow:
+
+- Toggle defaults to off. Off cards run with `settingSources: []` exactly as
+  v1 did.
+- Enabling the toggle requires a per-card per-session confirmation on the
+  next Run. The confirmation modal names the resolved
+  `<repoPath>/.claude/skills/` path and explains that the agent will read
+  and follow instructions from there.
+- Confirmation is stored in `sessionStorage` under
+  `claude-kanban:skills-confirmed`. Closing the tab clears it; toggling
+  `loadSkills` off and back on also clears it.
+
+Security framing: skills are instructions written by whoever owns the
+target repo. v1 trusts the user's judgment — there is no content
+sandboxing or static vetting. The default-off / per-session confirmation
+posture is the security guarantee.
 
 ## What we don't use (yet)
 

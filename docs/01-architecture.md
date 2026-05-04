@@ -80,6 +80,7 @@ type Card = {
   baseBranch: string;               // e.g. "main"
   status: "backlog" | "ready" | "running" | "review" | "done" | "failed";
   runs: Run[];                      // history; latest at end
+  loadSkills: boolean;              // phase-4/task-04; default false
   createdAt: string;                // ISO
   updatedAt: string;
 };
@@ -151,6 +152,7 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 | Two runs spawned for same card | Second one rejected by supervisor (one-active-run-per-card invariant). |
 | Diff capture fails after a successful run | Run still marked `done`; worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |
 | Trace write fails mid-run | Worker emits a single `worker warn` event; tracing degrades to best-effort; the run continues. |
+| Skill loading enabled but `<repoPath>/.claude/skills/` is missing | SDK loads from `["project"]` with no skills present; run proceeds normally; event log notes the empty skills load. |
 
 ## Out of scope (and why)
 

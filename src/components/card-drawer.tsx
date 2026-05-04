@@ -1,5 +1,14 @@
 "use client";
 
+// phase-4/task-04 trust gate: when the user clicks Run on a card with
+// loadSkills=true, show a one-time-per-session confirmation modal. The
+// confirmation key is `<cardId>:<loadSkills-state>`; on every edit that
+// changes loadSkills we additionally clear all entries for that cardId
+// from sessionStorage, so toggling off and back on re-arms the modal
+// even though the resulting key would otherwise repeat. Storage is
+// sessionStorage, intentionally not localStorage: closing the tab
+// clears the trust state.
+
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import type { Card, CardStatus, Run } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
@@ -35,6 +44,57 @@ type Props = {
 type Mode = { kind: "view" } | { kind: "edit" } | { kind: "delete" };
 type Pane = "log" | "diff" | "trace";
 
+const SKILLS_CONFIRMED_KEY = "claude-kanban:skills-confirmed";
+
+function readConfirmedSet(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.sessionStorage.getItem(SKILLS_CONFIRMED_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? new Set(parsed.filter((x): x is string => typeof x === "string"))
+      : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeConfirmedSet(set: Set<string>): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(SKILLS_CONFIRMED_KEY, JSON.stringify([...set]));
+  } catch {
+    // sessionStorage may be disabled; treat as not-confirmed which is the safe default.
+  }
+}
+
+function confirmKey(cardId: string, loadSkills: boolean): string {
+  return `${cardId}:${loadSkills ? "on" : "off"}`;
+}
+
+function isSkillsConfirmed(cardId: string, loadSkills: boolean): boolean {
+  return readConfirmedSet().has(confirmKey(cardId, loadSkills));
+}
+
+function markSkillsConfirmed(cardId: string, loadSkills: boolean): void {
+  const set = readConfirmedSet();
+  set.add(confirmKey(cardId, loadSkills));
+  writeConfirmedSet(set);
+}
+
+function clearSkillsConfirmedFor(cardId: string): void {
+  const set = readConfirmedSet();
+  let changed = false;
+  for (const k of [...set]) {
+    if (k.startsWith(`${cardId}:`)) {
+      set.delete(k);
+      changed = true;
+    }
+  }
+  if (changed) writeConfirmedSet(set);
+}
+
 export function CardDrawer({
   card,
   onClose,
@@ -48,6 +108,7 @@ export function CardDrawer({
   const [mode, setMode] = useState<Mode>({ kind: "view" });
   const [runStarting, setRunStarting] = useState(false);
   const [runMessage, setRunMessage] = useState<string | null>(null);
+  const [skillsConfirmOpen, setSkillsConfirmOpen] = useState(false);
 
   // Reset to latest run + view mode whenever the drawer opens for a
   // different card. Closing/reopening the same card also defaults back
@@ -78,6 +139,15 @@ export function CardDrawer({
   async function onRun(): Promise<void> {
     if (!card) return;
     setRunMessage(null);
+    if (card.loadSkills && !isSkillsConfirmed(card.id, card.loadSkills)) {
+      setSkillsConfirmOpen(true);
+      return;
+    }
+    await actuallyRun();
+  }
+
+  async function actuallyRun(): Promise<void> {
+    if (!card) return;
     setRunStarting(true);
     try {
       const res = await fetch(`/api/cards/${card.id}/run`, { method: "POST" });
@@ -99,7 +169,9 @@ export function CardDrawer({
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
-      setRunMessage(`Failed to start run (${res.status}): ${body.message ?? body.error ?? "unknown"}`);
+      setRunMessage(
+        `Failed to start run (${res.status}): ${body.message ?? body.error ?? "unknown"}`,
+      );
     } catch (e) {
       setRunMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -109,11 +181,7 @@ export function CardDrawer({
 
   return (
     <div className="fixed inset-0 z-40">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-slate-900/30"
-        onClick={onClose}
-      />
+      <div aria-hidden="true" className="absolute inset-0 bg-slate-900/30" onClick={onClose} />
       <aside
         role="dialog"
         aria-label={`Card ${card.title}`}
@@ -177,6 +245,9 @@ export function CardDrawer({
               mode="edit"
               initial={card}
               onSuccess={(c) => {
+                if (c.loadSkills !== card.loadSkills) {
+                  clearSkillsConfirmedFor(c.id);
+                }
                 onEdited(c);
                 setMode({ kind: "view" });
               }}
@@ -243,13 +314,9 @@ export function CardDrawer({
                           ) : null}
                           <span className="truncate font-mono">{r.id}</span>
                         </span>
-                        <span className="shrink-0 text-slate-500">
-                          {formatRunMeta(r)}
-                        </span>
+                        <span className="shrink-0 text-slate-500">{formatRunMeta(r)}</span>
                       </button>
-                      {live ? (
-                        <CancelButton cardId={card.id} runId={r.id} condensed />
-                      ) : null}
+                      {live ? <CancelButton cardId={card.id} runId={r.id} condensed /> : null}
                     </li>
                   );
                 })}
@@ -314,6 +381,43 @@ export function CardDrawer({
           </div>
         </div>
       </aside>
+      {skillsConfirmOpen ? (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/40">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm skills loading"
+            className="w-full max-w-md rounded-md border border-slate-300 bg-white p-4 shadow-xl"
+          >
+            <h3 className="text-base font-semibold text-slate-900">Load skills from this repo?</h3>
+            <p className="mt-2 text-sm text-slate-700">
+              This run will load skills from{" "}
+              <code className="font-mono">{card.repoPath}/.claude/skills/</code>. The agent will
+              read and follow instructions from that directory. Continue?
+            </p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSkillsConfirmOpen(false)}
+                className="rounded-sm border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  markSkillsConfirmed(card.id, card.loadSkills);
+                  setSkillsConfirmOpen(false);
+                  void actuallyRun();
+                }}
+                className="rounded-sm bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                Run with skills
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

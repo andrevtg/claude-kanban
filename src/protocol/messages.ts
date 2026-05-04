@@ -42,6 +42,11 @@ const RunInitPayloadSchema = z.object({
   // approve_pr message before exiting. Defaults to 15 minutes when absent.
   // See phase-4/task-02 worker-lifecycle notes.
   approveTimeoutMs: z.number().int().positive().optional(),
+  // When true, the worker passes settingSources: ["project"] to the SDK and
+  // adds "Skill" to allowedTools so it can load project-level skills from
+  // <repoPath>/.claude/skills/. See phase-4/task-04 and the security framing
+  // in docs/02-agent-sdk-usage.md "Skills".
+  loadSkills: z.boolean(),
 });
 export type RunInitPayload = z.infer<typeof RunInitPayloadSchema>;
 export { RunInitPayloadSchema, DiffStatSchema };

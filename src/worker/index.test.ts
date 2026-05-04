@@ -59,6 +59,7 @@ async function setupHarness(runId: string): Promise<Harness> {
     maxTurns: 1,
     diffPath: join(scratch, `${runId}.patch`),
     tracePath: join(scratch, `${runId}.jsonl`),
+    loadSkills: false,
   };
   const collected: WireMessage[] = [];
   const send = (m: WireMessage): void => {
@@ -74,11 +75,9 @@ async function setupHarness(runId: string): Promise<Harness> {
 }
 
 async function branchExists(repoPath: string, branchName: string): Promise<boolean> {
-  const { stdout } = await execFileAsync(
-    "git",
-    ["branch", "--list", branchName],
-    { cwd: repoPath },
-  );
+  const { stdout } = await execFileAsync("git", ["branch", "--list", branchName], {
+    cwd: repoPath,
+  });
   return stdout.trim().length > 0;
 }
 

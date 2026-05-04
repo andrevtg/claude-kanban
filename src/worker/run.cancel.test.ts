@@ -24,6 +24,7 @@ function makeInit(): RunInitPayload {
     maxTurns: 1,
     diffPath: "/tmp/diffs/run.patch",
     tracePath: "/tmp/traces/run.jsonl",
+    loadSkills: false,
   };
 }
 
@@ -108,9 +109,7 @@ describe("runAgent cooperative cancel", () => {
 
     const cancellingEvents = collected.filter(
       (m) =>
-        m.type === "event" &&
-        m.event.kind === "worker" &&
-        m.event.message.startsWith("cancelling"),
+        m.type === "event" && m.event.kind === "worker" && m.event.message.startsWith("cancelling"),
     );
     assert.equal(cancellingEvents.length, 1, "expected exactly one cancelling worker event");
   });
@@ -127,21 +126,14 @@ describe("runAgent cooperative cancel", () => {
     const input = Readable.from(lines);
 
     const collected: WireMessage[] = [];
-    const { exitCode } = await runAgent(
-      makeInit(),
-      (m) => collected.push(m),
-      input,
-      { queryFn },
-    );
+    const { exitCode } = await runAgent(makeInit(), (m) => collected.push(m), input, { queryFn });
 
     assert.equal(exitCode, 0);
     assert.equal(fake.interruptCalls, 1, "interrupt() should fire once even with multiple cancels");
 
     const cancellingEvents = collected.filter(
       (m) =>
-        m.type === "event" &&
-        m.event.kind === "worker" &&
-        m.event.message.startsWith("cancelling"),
+        m.type === "event" && m.event.kind === "worker" && m.event.message.startsWith("cancelling"),
     );
     assert.equal(cancellingEvents.length, 1);
   });
@@ -161,12 +153,7 @@ describe("runAgent cooperative cancel", () => {
     // Schedule the SDK iterator to settle on its own so runAgent returns.
     setImmediate(() => fake.finish());
 
-    const { exitCode } = await runAgent(
-      makeInit(),
-      (m) => collected.push(m),
-      input,
-      { queryFn },
-    );
+    const { exitCode } = await runAgent(makeInit(), (m) => collected.push(m), input, { queryFn });
 
     assert.equal(exitCode, 0);
     assert.equal(fake.interruptCalls, 0, "interrupt() must not fire for non-cancel messages");

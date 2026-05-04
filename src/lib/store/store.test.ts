@@ -135,6 +135,40 @@ for (const { name, make } of factories) {
       await assert.rejects(() => h.store.deleteCard("card_NOPE"), CardNotFoundError);
     });
 
+    it("loadSkills defaults to false on create", async () => {
+      const card = await h.store.createCard({
+        title: "t",
+        prompt: "p",
+        repoPath: "/tmp/r",
+        baseBranch: "main",
+      });
+      assert.equal(card.loadSkills, false);
+    });
+
+    it("loadSkills can be set to true on create", async () => {
+      const card = await h.store.createCard({
+        title: "t",
+        prompt: "p",
+        repoPath: "/tmp/r",
+        baseBranch: "main",
+        loadSkills: true,
+      });
+      assert.equal(card.loadSkills, true);
+    });
+
+    it("loadSkills can be patched in either direction", async () => {
+      const card = await h.store.createCard({
+        title: "t",
+        prompt: "p",
+        repoPath: "/tmp/r",
+        baseBranch: "main",
+      });
+      const on = await h.store.updateCard(card.id, { loadSkills: true });
+      assert.equal(on.loadSkills, true);
+      const off = await h.store.updateCard(card.id, { loadSkills: false });
+      assert.equal(off.loadSkills, false);
+    });
+
     it("appendRun and updateRun", async () => {
       const card = await h.store.createCard({
         title: "t",
@@ -261,6 +295,27 @@ describe("fileStore — disk-specific", () => {
     const names = await readdir(join(tmp, "cards"));
     const tmpLeft = names.filter((n) => n.includes(".tmp-"));
     assert.equal(tmpLeft.length, 0);
+  });
+
+  it("reads legacy card without loadSkills field as loadSkills:false", async () => {
+    const { mkdir, writeFile } = await import("node:fs/promises");
+    await mkdir(join(tmp, "cards"), { recursive: true });
+    const id = "card_LEGACY";
+    const legacy = {
+      id,
+      title: "legacy",
+      prompt: "p",
+      repoPath: "/tmp/r",
+      baseBranch: "main",
+      status: "backlog",
+      runs: [],
+      createdAt: "2026-04-01T00:00:00.000Z",
+      updatedAt: "2026-04-01T00:00:00.000Z",
+    };
+    await writeFile(cardFile(id), JSON.stringify(legacy), "utf8");
+    const got = await store.getCard(id);
+    assert.ok(got);
+    assert.equal(got!.loadSkills, false);
   });
 
   it("getCard surfaces StoreReadError on corrupt JSON", async () => {

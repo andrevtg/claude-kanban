@@ -79,14 +79,7 @@ export class UnknownRunError extends Error {
 const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_SIGTERM_DELAY_MS = 5_000;
 const DEFAULT_SIGKILL_DELAY_MS = 5_000;
-const DEFAULT_ALLOWED_TOOLS: readonly string[] = [
-  "Read",
-  "Write",
-  "Edit",
-  "Glob",
-  "Grep",
-  "Bash",
-];
+const DEFAULT_ALLOWED_TOOLS: readonly string[] = ["Read", "Write", "Edit", "Glob", "Grep", "Bash"];
 const DEFAULT_MAX_TURNS = 250;
 
 interface ActiveRun {
@@ -221,6 +214,7 @@ export class Supervisor extends EventEmitter {
       maxTurns: this.maxTurns,
       diffPath: diffPath(runId),
       tracePath: tracePath(runId),
+      loadSkills: card.loadSkills,
     };
     this.sendToWorker(active, { type: "init", run: initPayload });
 
@@ -297,7 +291,9 @@ export class Supervisor extends EventEmitter {
       const exitCode = code ?? (signal ? 128 : 1);
       if (!active.ready) {
         active.rejectReady(
-          new Error(`worker for run ${active.runId} exited before ready (signal=${signal ?? "none"}, code=${code ?? "none"})`),
+          new Error(
+            `worker for run ${active.runId} exited before ready (signal=${signal ?? "none"}, code=${code ?? "none"})`,
+          ),
         );
       }
       this.finalize(active, exitCode).finally(resolveFinish);

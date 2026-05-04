@@ -5,7 +5,9 @@ import type { Card, CardStatus } from "../protocol/index.js";
 
 const STATUSES: CardStatus[] = ["backlog", "ready", "running", "review", "done", "failed"];
 
-type FieldErrors = Partial<Record<"title" | "prompt" | "repoPath" | "baseBranch" | "status", string>>;
+type FieldErrors = Partial<
+  Record<"title" | "prompt" | "repoPath" | "baseBranch" | "status", string>
+>;
 
 type ZodIssue = { path: (string | number)[]; message: string };
 
@@ -28,13 +30,14 @@ type Props =
 export function CardForm(props: Props): ReactElement {
   const { mode, onSuccess, onCancel } = props;
   const initial = mode === "edit" ? props.initial : undefined;
-  const defaultRepoPath = mode === "create" ? props.defaultRepoPath ?? "" : "";
+  const defaultRepoPath = mode === "create" ? (props.defaultRepoPath ?? "") : "";
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [prompt, setPrompt] = useState(initial?.prompt ?? "");
   const [repoPath, setRepoPath] = useState(initial?.repoPath ?? defaultRepoPath);
   const [baseBranch, setBaseBranch] = useState(initial?.baseBranch ?? "main");
   const [status, setStatus] = useState<CardStatus>(initial?.status ?? "backlog");
+  const [loadSkills, setLoadSkills] = useState<boolean>(initial?.loadSkills ?? false);
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -45,7 +48,8 @@ export function CardForm(props: Props): ReactElement {
     if (!title.trim()) errors.title = "Title is required.";
     if (!prompt.trim()) errors.prompt = "Prompt is required.";
     if (!repoPath.trim()) errors.repoPath = "Repo path is required.";
-    else if (!repoPath.startsWith("/")) errors.repoPath = "Repo path must be absolute (start with /).";
+    else if (!repoPath.startsWith("/"))
+      errors.repoPath = "Repo path must be absolute (start with /).";
     if (!baseBranch.trim()) errors.baseBranch = "Base branch is required.";
     return errors;
   }
@@ -68,12 +72,14 @@ export function CardForm(props: Props): ReactElement {
           ? await fetch("/api/cards", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ title, prompt, repoPath, baseBranch, status }),
+              body: JSON.stringify({ title, prompt, repoPath, baseBranch, status, loadSkills }),
             })
           : await fetch(`/api/cards/${initial!.id}`, {
               method: "PATCH",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify(diffPatch(initial!, { title, prompt, repoPath, baseBranch, status })),
+              body: JSON.stringify(
+                diffPatch(initial!, { title, prompt, repoPath, baseBranch, status, loadSkills }),
+              ),
             });
 
       if (res.ok) {
@@ -172,6 +178,30 @@ export function CardForm(props: Props): ReactElement {
         />
       </Field>
 
+      <div>
+        <label htmlFor="card-load-skills" className="flex items-start gap-2 text-xs text-slate-700">
+          <input
+            id="card-load-skills"
+            type="checkbox"
+            checked={loadSkills}
+            onChange={(e) => setLoadSkills(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            <span className="font-medium">
+              Load skills from{" "}
+              <code className="font-mono">
+                {(repoPath.trim() || "<repo>") + "/.claude/skills/"}
+              </code>
+            </span>
+            <span className="mt-0.5 block text-slate-600">
+              Off by default. When on, the agent loads instructions from the repo. Only enable if
+              you trust the repo&apos;s contents.
+            </span>
+          </span>
+        </label>
+      </div>
+
       {mode === "edit" ? (
         <Field label="Status" error={fieldErrors.status} htmlFor="card-status">
           <select
@@ -244,7 +274,14 @@ function Field({
 
 function diffPatch(
   before: Card,
-  after: { title: string; prompt: string; repoPath: string; baseBranch: string; status: CardStatus },
+  after: {
+    title: string;
+    prompt: string;
+    repoPath: string;
+    baseBranch: string;
+    status: CardStatus;
+    loadSkills: boolean;
+  },
 ): Partial<Card> {
   const patch: Partial<Card> = {};
   if (after.title !== before.title) patch.title = after.title;
@@ -252,5 +289,6 @@ function diffPatch(
   if (after.repoPath !== before.repoPath) patch.repoPath = after.repoPath;
   if (after.baseBranch !== before.baseBranch) patch.baseBranch = after.baseBranch;
   if (after.status !== before.status) patch.status = after.status;
+  if (after.loadSkills !== before.loadSkills) patch.loadSkills = after.loadSkills;
   return patch;
 }

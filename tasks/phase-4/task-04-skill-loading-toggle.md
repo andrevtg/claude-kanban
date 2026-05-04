@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-4 / task-04 — Skill loading toggle
 
 ## Goal

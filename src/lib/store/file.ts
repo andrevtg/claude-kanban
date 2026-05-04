@@ -119,6 +119,7 @@ export function fileStore(): Store {
         baseBranch: input.baseBranch,
         status: input.status ?? "backlog",
         runs: [],
+        loadSkills: input.loadSkills ?? false,
         createdAt: now,
         updatedAt: now,
       });

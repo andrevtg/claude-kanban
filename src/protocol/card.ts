@@ -25,6 +25,10 @@ export const CardSchema = z.object({
   baseBranch: z.string().min(1),
   status: CardStatusSchema,
   runs: z.array(RunSchema),
+  // Default false for legacy cards on disk that pre-date phase-4/task-04.
+  // When true, the worker loads project-level skills from
+  // <repoPath>/.claude/skills/. See docs/02-agent-sdk-usage.md "Skills".
+  loadSkills: z.boolean().default(false),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
 });

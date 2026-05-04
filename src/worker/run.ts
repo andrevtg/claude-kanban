@@ -68,14 +68,34 @@ export async function runAgent(
 
   try {
     const traceWriter = deps.trace;
+    // Skills opt-in (phase-4/task-04): when init.loadSkills is true the SDK
+    // loads project-level skills from <cwd>/.claude/skills/. The supervisor
+    // sets cwd to the worktree, but the .claude/ directory is checked in to
+    // the user's repo and inherited by the worktree, so this is equivalent
+    // to loading skills from <repoPath>/.claude/skills/. The worker info
+    // event below makes the choice visible in the event log and trace.
+    const settingSources: Array<"project"> = init.loadSkills ? ["project"] : [];
+    const allowedTools = init.loadSkills
+      ? Array.from(new Set([...init.allowedTools, "Skill"]))
+      : init.allowedTools;
+    send({
+      type: "event",
+      event: {
+        kind: "worker",
+        level: "info",
+        message: init.loadSkills
+          ? `skills loading enabled; settingSources=["project"], cwd=${init.worktreePath}`
+          : `skills loading disabled; settingSources=[]`,
+      },
+    });
     const q = queryImpl({
       prompt: init.prompt,
       options: {
         cwd: init.worktreePath,
         model: init.model,
-        allowedTools: init.allowedTools,
+        allowedTools,
         permissionMode: "acceptEdits",
-        settingSources: [],
+        settingSources,
         maxTurns: init.maxTurns,
         ...(traceWriter
           ? {
