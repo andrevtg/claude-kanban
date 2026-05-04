@@ -2,7 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
+import { createPortal } from "react-dom";
 import type { Card } from "../protocol/index.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { ErrorCard } from "./error-card.js";
@@ -32,6 +33,15 @@ export function BoardCard({
     id: card.id,
     data: { status: card.status },
   });
+
+  useEffect(() => {
+    if (action?.kind !== "delete") return;
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === "Escape") onAction(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [action?.kind, onAction]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -95,19 +105,29 @@ export function BoardCard({
         </div>
       ) : null}
 
-      {action?.kind === "delete" ? (
-        <div
-          className="mt-3"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <CardDeleteConfirm
-            card={card}
-            onDeleted={() => onDeleted(card.id)}
-            onCancel={() => onAction(null)}
-          />
-        </div>
-      ) : null}
+      {action?.kind === "delete" && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-slate-900/40"
+                onClick={() => onAction(null)}
+              />
+              <div className="relative w-full max-w-md">
+                <CardDeleteConfirm
+                  card={card}
+                  onDeleted={() => onDeleted(card.id)}
+                  onCancel={() => onAction(null)}
+                />
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </li>
   );
 }
