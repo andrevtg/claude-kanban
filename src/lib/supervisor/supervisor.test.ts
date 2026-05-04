@@ -96,6 +96,7 @@ describe("Supervisor", () => {
       assert.ok(run, "run should be persisted");
       assert.equal(run?.exitCode, 0);
       assert.ok(run?.endedAt, "run should have endedAt");
+      assert.equal(updated?.status, "review", "exit 0 should transition card to review");
     });
   });
 
@@ -131,6 +132,8 @@ describe("Supervisor", () => {
       const card = await makeCard(store);
 
       const handle = await sup.startRun(card, settings);
+      const running = await store.getCard(card.id);
+      assert.equal(running?.status, "running", "startRun should persist running status");
       try {
         await assert.rejects(
           () => sup.startRun(card, settings),

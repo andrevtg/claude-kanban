@@ -157,6 +157,7 @@ export class Supervisor extends EventEmitter {
     const worktreePath = runDir(runId);
 
     await this.store.appendRun(card.id, { id: runId, startedAt, branchName });
+    await this.store.updateCard(card.id, { status: "running" });
 
     await mkdir(logsDir(), { recursive: true });
     await mkdir(tracesDir(), { recursive: true });
@@ -418,6 +419,15 @@ export class Supervisor extends EventEmitter {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       process.stderr.write(`[${active.runId}] supervisor updateRun error: ${msg}\n`);
+    }
+
+    try {
+      await this.store.updateCard(active.cardId, {
+        status: exitCode === 0 ? "review" : "failed",
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      process.stderr.write(`[${active.runId}] supervisor updateCard(status) error: ${msg}\n`);
     }
 
     this.active.delete(active.runId);
