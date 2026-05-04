@@ -75,6 +75,8 @@ A port to Managed Agents is the planned v2; phase-5/task-04 produces the handoff
 
 ## What stays the same in the Managed Agents port (phase-5/task-04)
 
+The full port plan now lives in [`docs/06-managed-agents-port.md`](./06-managed-agents-port.md); the sketch below is a summary, and the new doc is canonical.
+
 When we port to Claude Managed Agents:
 
 - **Stays:** the UI, the card/run data model, the wire protocol shape (re-targeted at SSE from Anthropic's run endpoint), the JSON-file store (or swapped for a managed run store; either works).

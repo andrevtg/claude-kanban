@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-5 / task-04 — Managed Agents handoff doc
 
 ## Goal
