@@ -1,26 +1,24 @@
-# Phase 5 — Stubs
+# Phase 5
 
-## task-01 — ESLint module-boundary rule
+See individual task files in this directory:
 
-Use `eslint-plugin-boundaries` (or a custom rule). Forbid:
-- `src/worker/**` importing from `src/lib/**` or `src/app/**`.
-- `src/lib/**` importing from `src/worker/**` or `src/app/**`.
-- Anything importing from `src/protocol/**` is fine.
+- `task-01-eslint-boundaries.md` — commission an ESLint rule that
+  enforces `docs/01-architecture.md` module boundaries at lint
+  time; choose tool (`eslint-plugin-boundaries` vs custom rule)
+  in ADR-011
+- `task-02-error-states.md` — audit every failure mode in the
+  architecture doc and verify each renders visible card-level
+  state with a Retry or Copy details affordance
+- `task-03-readme-and-demo.md` — replace the scaffold-era README
+  with one describing a working artifact; add `docs/DEMO.md` with
+  a timed 2-minute walkthrough
+- `task-04-managed-agents-handoff.md` — write
+  `docs/06-managed-agents-port.md`, the strategic plan for
+  porting from local Agent SDK mode to Claude Managed Agents
 
-## task-02 — Error states
-
-Error UX pass: every failure mode in `docs/01-architecture.md` "Failure modes" gets a real card-level rendering. No silent failures. Every error shown has either a "Retry" or a "Copy details" affordance.
-
-## task-03 — README and demo
-
-Replace the scaffold README with a real one: screenshots/GIF, install steps, demo script. A 2-minute demo flow: create card → drag to running → watch it work → review diff → click Open PR → click PR URL.
-
-## task-04 — Managed Agents handoff doc
-
-Write `docs/04-managed-agents-port.md` documenting:
-- The seam where the local supervisor would be replaced by a Managed Agents client.
-- What changes in the worker module (basically: most of it goes away; `query()` becomes a `/v1/sessions` create + SSE consume).
-- What stays the same (UI, store, protocol, card model).
-- Estimated effort and risks.
-
-**Phase-5 done when:** repo is demoable, and there's a written, credible plan to do the cloud port.
+**Phase-5 done when:** the lint rule enforces the module
+boundaries on the real codebase, every failure mode renders as
+visible state with an affordance, the README and DEMO doc let an
+unfamiliar reader run and demo the project, and
+`docs/06-managed-agents-port.md` answers "could you actually port
+this and what would it cost?" for a partner-network reader.
