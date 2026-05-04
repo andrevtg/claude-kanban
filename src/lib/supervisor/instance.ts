@@ -32,9 +32,7 @@ export function getSupervisor(): Supervisor {
   void sweepStaleWorktrees(store)
     .then((r) => {
       if (r.removed.length > 0) {
-        process.stderr.write(
-          `[supervisor] sweep removed: ${r.removed.join(", ")}\n`,
-        );
+        process.stderr.write(`[supervisor] sweep removed: ${r.removed.join(", ")}\n`);
       }
       if (r.orphans.length > 0) {
         process.stderr.write(

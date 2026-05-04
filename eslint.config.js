@@ -3,14 +3,7 @@ import tsparser from "@typescript-eslint/parser";
 
 export default [
   {
-    ignores: [
-      "node_modules/**",
-      "dist/**",
-      ".next/**",
-      "build/**",
-      ".agents/**",
-      "next-env.d.ts",
-    ],
+    ignores: ["node_modules/**", "dist/**", ".next/**", "build/**", ".agents/**", "next-env.d.ts"],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],

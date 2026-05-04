@@ -90,9 +90,7 @@ export function BoardCard({
           label="Delete"
           danger
         />
-        {activeRunId ? (
-          <CancelButton cardId={card.id} runId={activeRunId} condensed />
-        ) : null}
+        {activeRunId ? <CancelButton cardId={card.id} runId={activeRunId} condensed /> : null}
       </div>
 
       {inlineNotice ? (
@@ -107,7 +105,11 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "edit" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mt-3"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <CardForm
             mode="edit"
             initial={card}
@@ -118,7 +120,11 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "delete" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mt-3"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <CardDeleteConfirm
             card={card}
             onDeleted={() => onDeleted(card.id)}
@@ -128,7 +134,11 @@ export function BoardCard({
       ) : null}
 
       {action?.kind === "run" ? (
-        <div className="mt-3" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mt-3"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <RunCard card={card} />
         </div>
       ) : null}
@@ -147,8 +157,7 @@ function RowButton({
   label: string;
   danger?: boolean;
 }): ReactElement {
-  const base =
-    "rounded-sm border px-2 py-0.5 text-[11px] font-medium transition-colors";
+  const base = "rounded-sm border px-2 py-0.5 text-[11px] font-medium transition-colors";
   const cls = danger
     ? `${base} border-red-300 text-red-700 hover:bg-red-50`
     : `${base} border-slate-300 text-slate-700 hover:bg-slate-100`;

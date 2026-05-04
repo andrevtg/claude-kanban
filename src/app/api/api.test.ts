@@ -105,7 +105,11 @@ describe("api routes", () => {
     it("creates a card on disk under CLAUDE_KANBAN_HOME", async () => {
       await withHome(async () => {
         const fileBacked = fileStore();
-          setDeps(() => ({ store: fileBacked, supervisor: asSupervisor({} as SupervisorStub), checkGh: okGh }));
+        setDeps(() => ({
+          store: fileBacked,
+          supervisor: asSupervisor({} as SupervisorStub),
+          checkGh: okGh,
+        }));
         const res = await cardsPOST(
           jsonReq("POST", {
             title: "fs",
@@ -175,7 +179,10 @@ describe("api routes", () => {
     });
 
     it("updates allowed fields", async () => {
-      const res = await cardPATCH(jsonReq("PATCH", { title: "renamed", status: "ready" }), ctx({ id: card.id }));
+      const res = await cardPATCH(
+        jsonReq("PATCH", { title: "renamed", status: "ready" }),
+        ctx({ id: card.id }),
+      );
       assert.equal(res.status, 200);
       const body = (await res.json()) as Card;
       assert.equal(body.title, "renamed");
@@ -205,7 +212,12 @@ describe("api routes", () => {
     });
 
     it("returns 204 on success and 404 if missing", async () => {
-      const c = await store.createCard({ title: "t", prompt: "", repoPath: "/r", baseBranch: "main" });
+      const c = await store.createCard({
+        title: "t",
+        prompt: "",
+        repoPath: "/r",
+        baseBranch: "main",
+      });
       const res = await cardDELETE(jsonReq("DELETE", undefined), ctx({ id: c.id }));
       assert.equal(res.status, 204);
       const res2 = await cardDELETE(jsonReq("DELETE", undefined), ctx({ id: c.id }));
@@ -525,8 +537,7 @@ describe("api routes", () => {
       setDeps(() => ({
         store,
         supervisor: asSupervisor({} as SupervisorStub),
-        checkGh: () =>
-          Promise.resolve({ state: "unauthenticated", message: "run gh auth login" }),
+        checkGh: () => Promise.resolve({ state: "unauthenticated", message: "run gh auth login" }),
       }));
       const res = await ghStatusGET();
       assert.equal(res.status, 200);

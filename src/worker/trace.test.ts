@@ -5,12 +5,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, chmod, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  DEFAULT_MAX_ARG_BYTES,
-  openTraceWriter,
-  redactArgs,
-  type TraceEntry,
-} from "./trace.js";
+import { DEFAULT_MAX_ARG_BYTES, openTraceWriter, redactArgs, type TraceEntry } from "./trace.js";
 
 describe("redactArgs", () => {
   it("returns short strings unchanged", () => {
@@ -26,10 +21,11 @@ describe("redactArgs", () => {
 
   it("walks objects and arrays recursively", () => {
     const big = "y".repeat(8000);
-    const out = redactArgs(
-      { a: { b: big, c: [big, "ok"] }, d: 1, e: true },
-      100,
-    ) as { a: { b: string; c: string[] }; d: number; e: boolean };
+    const out = redactArgs({ a: { b: big, c: [big, "ok"] }, d: 1, e: true }, 100) as {
+      a: { b: string; c: string[] };
+      d: number;
+      e: boolean;
+    };
     assert.match(out.a.b, /\[truncated 7900 bytes\]$/);
     assert.match(out.a.c[0]!, /\[truncated 7900 bytes\]$/);
     assert.equal(out.a.c[1], "ok");
@@ -76,7 +72,10 @@ describe("openTraceWriter", () => {
       for (const e of entries) await w.append(e);
       await w.close();
       const text = await readFile(path, "utf8");
-      const lines = text.trim().split("\n").filter((l) => l.length > 0);
+      const lines = text
+        .trim()
+        .split("\n")
+        .filter((l) => l.length > 0);
       assert.equal(lines.length, 2);
       assert.deepEqual(JSON.parse(lines[0]!), entries[0]);
       assert.deepEqual(JSON.parse(lines[1]!), entries[1]);
@@ -92,9 +91,7 @@ describe("openTraceWriter", () => {
       // writer's internal queue must serialize them in submission order.
       const promises: Array<Promise<void>> = [];
       for (let i = 0; i < N; i++) {
-        promises.push(
-          w.append({ ts: new Date(i).toISOString(), tool: "T", args: { i } }),
-        );
+        promises.push(w.append({ ts: new Date(i).toISOString(), tool: "T", args: { i } }));
       }
       await Promise.all(promises);
       await w.close();

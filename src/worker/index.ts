@@ -361,13 +361,12 @@ async function readInit(send: SendFn, input: Readable): Promise<RunInitPayload |
 
 const isDirect =
   process.argv[1] !== undefined &&
-  (process.argv[1].endsWith("worker/index.ts") ||
-    process.argv[1].endsWith("worker/index.js"));
+  (process.argv[1].endsWith("worker/index.ts") || process.argv[1].endsWith("worker/index.js"));
 if (isDirect) {
   main()
     .then((code) => process.exit(code))
     .catch((e: unknown) => {
-      const msg = e instanceof Error ? e.stack ?? e.message : String(e);
+      const msg = e instanceof Error ? (e.stack ?? e.message) : String(e);
       process.stderr.write(`worker fatal: ${msg}\n`);
       process.exit(EXIT_PROTOCOL_ERROR);
     });

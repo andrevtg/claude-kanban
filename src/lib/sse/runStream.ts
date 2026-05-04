@@ -103,10 +103,7 @@ export function openRunStream(
   });
 }
 
-async function findPersistedExitCode(
-  store: Store,
-  runId: string,
-): Promise<number | undefined> {
+async function findPersistedExitCode(store: Store, runId: string): Promise<number | undefined> {
   for (const card of await store.listCards()) {
     const run = card.runs.find((r) => r.id === runId);
     if (run) return run.exitCode;

@@ -27,10 +27,7 @@ export interface OpenTraceWriterOptions {
 
 export const DEFAULT_MAX_ARG_BYTES = 4096;
 
-export function openTraceWriter(
-  path: string,
-  opts: OpenTraceWriterOptions = {},
-): TraceWriter {
+export function openTraceWriter(path: string, opts: OpenTraceWriterOptions = {}): TraceWriter {
   let stream: WriteStream | null = null;
   let failed = false;
   let warned = false;

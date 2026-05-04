@@ -10,13 +10,7 @@
 
 "use client";
 
-import {
-  DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
+import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { useEffect, useState, type ReactElement } from "react";
 import type { Card, CardStatus, Run } from "../protocol/index.js";
 import { CardForm } from "./card-form.js";
@@ -109,9 +103,7 @@ export function Board({
     const now = new Date().toISOString();
     setCards((prev) =>
       prev.map((c) =>
-        c.id === cardId
-          ? { ...c, runs: [...c.runs, run], status: "running", updatedAt: now }
-          : c,
+        c.id === cardId ? { ...c, runs: [...c.runs, run], status: "running", updatedAt: now } : c,
       ),
     );
   }
@@ -168,9 +160,7 @@ export function Board({
         return;
       }
     } catch (e) {
-      setCards((prev) =>
-        prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)),
-      );
+      setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)));
       setError(cardId, e instanceof Error ? e.message : String(e));
       return;
     }
@@ -189,10 +179,7 @@ export function Board({
           error?: string;
           runId?: string;
         };
-        setNotice(
-          cardId,
-          `Run already active${body.runId ? ` (${body.runId})` : ""}.`,
-        );
+        setNotice(cardId, `Run already active${body.runId ? ` (${body.runId})` : ""}.`);
         return;
       }
       const body = (await runRes.json().catch(() => ({}))) as {
@@ -206,9 +193,7 @@ export function Board({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ status: previousStatus }),
       }).catch(() => undefined);
-      setCards((prev) =>
-        prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)),
-      );
+      setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)));
       setError(cardId, `Run failed to start: ${detail}`);
     } catch (e) {
       await fetch(`/api/cards/${cardId}`, {
@@ -216,9 +201,7 @@ export function Board({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ status: previousStatus }),
       }).catch(() => undefined);
-      setCards((prev) =>
-        prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)),
-      );
+      setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, status: previousStatus } : c)));
       setError(cardId, e instanceof Error ? e.message : String(e));
     }
   }
@@ -251,7 +234,8 @@ export function Board({
 
       {cards.length === 0 && !creating ? (
         <div className="rounded-md border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
-          No cards yet — click <span className="font-medium text-slate-700">New card</span> to start.
+          No cards yet — click <span className="font-medium text-slate-700">New card</span> to
+          start.
         </div>
       ) : null}
 

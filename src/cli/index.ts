@@ -104,9 +104,7 @@ async function main(): Promise<number> {
   try {
     await supervisor.startRun(card, effective);
   } catch (e) {
-    process.stderr.write(
-      `failed to start run: ${e instanceof Error ? e.message : String(e)}\n`,
-    );
+    process.stderr.write(`failed to start run: ${e instanceof Error ? e.message : String(e)}\n`);
     return 1;
   }
   await done;

@@ -78,9 +78,7 @@ export function RunDiff({
   }
 
   if (diffStat.files === 0) {
-    return (
-      <div className="p-4 text-xs text-slate-600">Agent made no changes.</div>
-    );
+    return <div className="p-4 text-xs text-slate-600">Agent made no changes.</div>;
   }
 
   if (state.kind === "loading" || state.kind === "idle") {
@@ -112,9 +110,7 @@ export function RunDiff({
         </span>
         <span className="text-emerald-700">+{diffStat.insertions}</span>
         <span className="text-red-700">-{diffStat.deletions}</span>
-        <span className="ml-auto font-mono text-slate-500">
-          {formatBytes(data.bytes)}
-        </span>
+        <span className="ml-auto font-mono text-slate-500">{formatBytes(data.bytes)}</span>
       </div>
       {data.truncated ? (
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">

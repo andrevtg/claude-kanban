@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, type FormEvent, type ReactElement } from "react";
-import {
-  DEFAULT_BASH_ALLOWLIST,
-  DEFAULT_MODEL,
-  type GlobalSettings,
-} from "../protocol/index.js";
+import { DEFAULT_BASH_ALLOWLIST, DEFAULT_MODEL, type GlobalSettings } from "../protocol/index.js";
 
 type ZodIssue = { path: (string | number)[]; message: string };
 
 type FieldErrors = Partial<
-  Record<"apiKeyPath" | "apiKeyValue" | "defaultModel" | "defaultRepoPath" | "bashAllowlist", string>
+  Record<
+    "apiKeyPath" | "apiKeyValue" | "defaultModel" | "defaultRepoPath" | "bashAllowlist",
+    string
+  >
 >;
 
 export function SettingsForm({ initial }: { initial: GlobalSettings | null }): ReactElement {
@@ -136,7 +135,9 @@ export function SettingsForm({ initial }: { initial: GlobalSettings | null }): R
         return;
       }
       const payload = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
-      setFormError(`Request failed (${res.status}): ${payload.message ?? payload.error ?? "unknown"}`);
+      setFormError(
+        `Request failed (${res.status}): ${payload.message ?? payload.error ?? "unknown"}`,
+      );
     } catch (err) {
       setFormError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -255,7 +256,10 @@ export function SettingsForm({ initial }: { initial: GlobalSettings | null }): R
         </div>
 
         <div>
-          <label htmlFor="defaultRepoPath" className="mb-1 block text-xs font-medium text-slate-700">
+          <label
+            htmlFor="defaultRepoPath"
+            className="mb-1 block text-xs font-medium text-slate-700"
+          >
             Default repo path (optional)
           </label>
           <input

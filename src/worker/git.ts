@@ -57,9 +57,7 @@ export interface CreateWorktreeResult {
   branchName: string;
 }
 
-export async function createWorktree(
-  args: CreateWorktreeArgs,
-): Promise<CreateWorktreeResult> {
+export async function createWorktree(args: CreateWorktreeArgs): Promise<CreateWorktreeResult> {
   const { repoPath, baseBranch, worktreePath, branchName } = args;
 
   try {
@@ -81,14 +79,7 @@ export async function createWorktree(
   }
 
   try {
-    await git(repoPath, [
-      "worktree",
-      "add",
-      "-b",
-      branchName,
-      worktreePath,
-      baseBranch,
-    ]);
+    await git(repoPath, ["worktree", "add", "-b", branchName, worktreePath, baseBranch]);
   } catch (e) {
     const stderr = errStderr(e);
     const code: GitErrorCode = /uncommitted|dirty|locked/i.test(stderr)
@@ -168,7 +159,11 @@ export async function captureDiff(args: CaptureDiffArgs): Promise<CaptureDiffRes
     statText = r.stdout;
   } catch (e) {
     const stderr = errStderr(e);
-    throw new GitError("DIFF_FAILED", `git diff --stat failed: ${stderr.trim() || String(e)}`, stderr);
+    throw new GitError(
+      "DIFF_FAILED",
+      `git diff --stat failed: ${stderr.trim() || String(e)}`,
+      stderr,
+    );
   }
 
   const stat = parseDiffStatLine(statText);
@@ -242,7 +237,9 @@ async function writeFullDiff(
         }
         fsStat(outPath)
           .then((s) => resolve({ bytes: s.size, truncated }))
-          .catch((e) => reject(new GitError("DIFF_FAILED", `stat patch failed: ${(e as Error).message}`)));
+          .catch((e) =>
+            reject(new GitError("DIFF_FAILED", `stat patch failed: ${(e as Error).message}`)),
+          );
       });
     });
   });

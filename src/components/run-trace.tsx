@@ -72,14 +72,10 @@ export function RunTrace({
     return <div className="p-4 text-xs text-slate-500">Loading trace…</div>;
   }
   if (state.kind === "missing") {
-    return (
-      <div className="p-4 text-xs text-slate-500">Tracing not enabled for this run.</div>
-    );
+    return <div className="p-4 text-xs text-slate-500">Tracing not enabled for this run.</div>;
   }
   if (state.kind === "empty") {
-    return (
-      <div className="p-4 text-xs text-slate-500">No tool calls recorded for this run.</div>
-    );
+    return <div className="p-4 text-xs text-slate-500">No tool calls recorded for this run.</div>;
   }
   if (state.kind === "error") {
     return (
@@ -111,9 +107,7 @@ function TraceRow({ entry }: { entry: TraceEntry }): ReactElement {
   return (
     <li className="border-b border-slate-100 px-4 py-2 text-xs">
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[10px] text-slate-500">
-          {formatTime(entry.ts)}
-        </span>
+        <span className="font-mono text-[10px] text-slate-500">{formatTime(entry.ts)}</span>
         <span className="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-700">
           {entry.tool}
         </span>

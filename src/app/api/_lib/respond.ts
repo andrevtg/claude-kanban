@@ -55,9 +55,7 @@ export function stripUndefined<T extends object>(obj: T): Partial<T> {
 // Catches every expected store/supervisor error and the inevitable
 // JSON.parse / Zod failure path. Anything else bubbles to a 500 with the
 // message logged to stderr — the moral equivalent of throwing in a route.
-export async function withErrorHandling(
-  handler: () => Promise<Response>,
-): Promise<Response> {
+export async function withErrorHandling(handler: () => Promise<Response>): Promise<Response> {
   try {
     return await handler();
   } catch (e) {

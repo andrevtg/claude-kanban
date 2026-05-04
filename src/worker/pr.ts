@@ -139,17 +139,18 @@ export interface OpenPrDeps {
   run?: RunFn;
 }
 
-export async function openPr(
-  args: OpenPrArgs,
-  deps: OpenPrDeps = {},
-): Promise<OpenPrResult> {
+export async function openPr(args: OpenPrArgs, deps: OpenPrDeps = {}): Promise<OpenPrResult> {
   const run = deps.run ?? defaultRun;
 
   // 1. push.
-  const push = await run(
-    "git",
-    ["-C", args.worktreePath, "push", "-u", args.remote, args.branchName],
-  );
+  const push = await run("git", [
+    "-C",
+    args.worktreePath,
+    "push",
+    "-u",
+    args.remote,
+    args.branchName,
+  ]);
   if (isEnoent(push)) {
     return { ok: false, code: "PUSH_FAILED", message: "git executable not found" };
   }

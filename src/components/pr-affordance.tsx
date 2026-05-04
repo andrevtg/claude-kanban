@@ -7,14 +7,7 @@
 //   error PUSH_FAILED / PR_CREATE_FAILED / GH_* → inline error, button re-enabled
 //   error PR_URL_MISSING → inline warning, button stays disabled
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-  type ReactElement,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from "react";
 import type { Card, EventLogEntry, Run } from "../protocol/index.js";
 
 type GhStatus =
@@ -160,7 +153,8 @@ export function PrAffordance({
         : phase.kind === "warning"
           ? "PR may already exist on the remote."
           : null;
-  const disabled = disabledReason !== null || phase.kind === "submitting" || phase.kind === "waiting";
+  const disabled =
+    disabledReason !== null || phase.kind === "submitting" || phase.kind === "waiting";
 
   async function onSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();

@@ -99,8 +99,7 @@ describe("parseDiffStatLine", () => {
     assert.deepStrictEqual(parseDiffStatLine(""), { files: 0, insertions: 0, deletions: 0 });
   });
   it("parses a typical mixed line", () => {
-    const out =
-      " a.txt | 2 +-\n b.txt | 1 +\n 2 files changed, 2 insertions(+), 1 deletion(-)\n";
+    const out = " a.txt | 2 +-\n b.txt | 1 +\n 2 files changed, 2 insertions(+), 1 deletion(-)\n";
     assert.deepStrictEqual(parseDiffStatLine(out), {
       files: 2,
       insertions: 2,
