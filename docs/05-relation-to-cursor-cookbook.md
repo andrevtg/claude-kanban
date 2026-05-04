@@ -48,7 +48,7 @@ A port to Managed Agents is the planned v2; phase-5/task-04 produces the handoff
 |---|---|
 | `cloud: { autoCreatePR: true }` flag on agent creation; the runtime owns the PR step. | Worker explicitly runs `git push` + `gh pr create` after a successful run, gated on user approval from the card UI. |
 
-**Why.** The Agent SDK has no equivalent flag because the SDK doesn't own the cloud sandbox or the git remote. Keeping PR creation as a separate, user-approved step is also a feature, not a bug — it gives the human a review gate before anything hits a remote. (Phase 4 implements this.) Local mode hard-requires `gh` for the push + PR step (see ADR-010); Managed Agents bundles git auth into the sandbox and exposes PR creation as a tool/MCP call instead.
+**Why.** The Agent SDK has no equivalent flag because the SDK doesn't own the cloud sandbox or the git remote. Keeping PR creation as a separate, user-approved step is also a feature, not a bug — it gives the human a review gate before anything hits a remote. (Phase-4/task-02 shipped this.) Local mode hard-requires `gh` for the push + PR step (see ADR-010); Managed Agents bundles git auth into the sandbox and exposes PR creation as a tool/MCP call instead.
 
 ### Persistence: JSON files, not the platform's run store
 
@@ -64,7 +64,7 @@ A port to Managed Agents is the planned v2; phase-5/task-04 produces the handoff
 |---|---|
 | The Cloud Agents API exposes a "repos available to this account" endpoint that populates the new-card dropdown. | The user configures a default repo path in settings, and per-card can override with any local path. No GitHub OAuth in v1. |
 
-**Why.** No equivalent endpoint in local mode (and we don't want to ship GitHub OAuth in v1). Phase 4 may add a "recent repos" list pulled from local git config.
+**Why.** No equivalent endpoint in local mode (and we don't want to ship GitHub OAuth in v1). Phase 4 did not add a "recent repos" list — the settings-page default plus a free-form per-card override turned out to be enough; a recent-repos affordance can land later if it earns its keep.
 
 ## What we dropped
 
@@ -84,7 +84,7 @@ When we port to Claude Managed Agents:
 ## Divergence: per-card skill loading
 
 Cursor doesn't expose a per-task skill-loading toggle — its cloud sandbox has
-a fixed environment. Local mode (phase-4/task-04) adds a per-card toggle so
+a fixed environment. Local mode (phase-4/task-04) added a per-card toggle so
 the user can opt into project-level skills from the target repo. In the
 Managed Agents port (phase-5/task-04) this becomes a per-Environment
 configuration, not a per-card choice; the per-session re-confirmation flow
@@ -95,4 +95,4 @@ this repo" attribute that the cloud surfaces with its own consent UI.
 
 The original cookbook is © Anysphere Inc., MIT-licensed. We thank the Cursor team for publishing it; the kanban-of-agents UX is a clean idea well executed and worth porting. This project is independent and not affiliated with Anysphere.
 
-When phase 5 produces the public README, that README must include this attribution prominently — not buried in a docs file.
+Phase-5/task-03 produced the public README and carried this attribution into its first half — not buried in a docs file. Future README rewrites must keep it there.

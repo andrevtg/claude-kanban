@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-5 / task-03 — README and demo flow
 
 ## Goal
