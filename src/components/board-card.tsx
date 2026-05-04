@@ -4,13 +4,11 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { ReactElement } from "react";
 import type { Card } from "../protocol/index.js";
-import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
-import { RunCard } from "./run-card.js";
 import { CancelButton } from "./cancel-button.js";
 import { ErrorCard } from "./error-card.js";
 
-export type BoardCardAction = { kind: "edit" } | { kind: "delete" } | { kind: "run" } | null;
+export type BoardCardAction = { kind: "delete" } | null;
 
 type Props = {
   card: Card;
@@ -18,7 +16,6 @@ type Props = {
   inlineNotice: string | null;
   inlineError: string | null;
   onAction: (action: BoardCardAction) => void;
-  onEdited: (card: Card) => void;
   onDeleted: (id: string) => void;
   onSelect: (id: string) => void;
 };
@@ -29,7 +26,6 @@ export function BoardCard({
   inlineNotice,
   inlineError,
   onAction,
-  onEdited,
   onDeleted,
   onSelect,
 }: Props): ReactElement {
@@ -75,16 +71,7 @@ export function BoardCard({
       </div>
 
       <div className="mt-2 flex items-center gap-1">
-        <RowButton
-          active={action?.kind === "run"}
-          onClick={() => onAction(action?.kind === "run" ? null : { kind: "run" })}
-          label={action?.kind === "run" ? "Hide" : "Run"}
-        />
-        <RowButton
-          active={action?.kind === "edit"}
-          onClick={() => onAction(action?.kind === "edit" ? null : { kind: "edit" })}
-          label="Edit"
-        />
+        <RowButton active={false} onClick={() => onSelect(card.id)} label="Open" />
         <RowButton
           active={action?.kind === "delete"}
           onClick={() => onAction(action?.kind === "delete" ? null : { kind: "delete" })}
@@ -113,21 +100,6 @@ export function BoardCard({
         </div>
       ) : null}
 
-      {action?.kind === "edit" ? (
-        <div
-          className="mt-3"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <CardForm
-            mode="edit"
-            initial={card}
-            onSuccess={onEdited}
-            onCancel={() => onAction(null)}
-          />
-        </div>
-      ) : null}
-
       {action?.kind === "delete" ? (
         <div
           className="mt-3"
@@ -139,16 +111,6 @@ export function BoardCard({
             onDeleted={() => onDeleted(card.id)}
             onCancel={() => onAction(null)}
           />
-        </div>
-      ) : null}
-
-      {action?.kind === "run" ? (
-        <div
-          className="mt-3"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <RunCard card={card} />
         </div>
       ) : null}
     </li>

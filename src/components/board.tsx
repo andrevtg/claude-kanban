@@ -76,7 +76,6 @@ export function Board({
 
   function onEdited(card: Card): void {
     setCards((prev) => prev.map((c) => (c.id === card.id ? card : c)));
-    setAction(card.id, null);
   }
 
   function onDeleted(id: string): void {
@@ -259,7 +258,6 @@ export function Board({
                       inlineNotice={notices[card.id] ?? null}
                       inlineError={errors[card.id] ?? null}
                       onAction={(a) => setAction(card.id, a)}
-                      onEdited={onEdited}
                       onDeleted={onDeleted}
                       onSelect={setSelectedCardId}
                     />
