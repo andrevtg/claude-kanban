@@ -5,7 +5,6 @@ import { CSS } from "@dnd-kit/utilities";
 import type { ReactElement } from "react";
 import type { Card } from "../protocol/index.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
-import { CancelButton } from "./cancel-button.js";
 import { ErrorCard } from "./error-card.js";
 
 export type BoardCardAction = { kind: "delete" } | null;
@@ -39,9 +38,6 @@ export function BoardCard({
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
-
-  const lastRun = card.runs[card.runs.length - 1];
-  const activeRunId = lastRun && !lastRun.endedAt ? lastRun.id : null;
 
   return (
     <li
@@ -78,7 +74,6 @@ export function BoardCard({
           label="Delete"
           danger
         />
-        {activeRunId ? <CancelButton cardId={card.id} runId={activeRunId} condensed /> : null}
       </div>
 
       {inlineNotice ? (

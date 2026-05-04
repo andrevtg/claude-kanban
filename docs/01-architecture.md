@@ -99,6 +99,15 @@ type Run = {
 
 `endedAt` is set when the worker exits, not when the SDK loop completes; for runs that wait in phase-4/task-02's post-SDK approval window, `endedAt` reflects the worker's full lifetime including that wait.
 
+### Card status transitions
+
+`Card.status` is owned by the user (drag-and-drop, edit form) **and** the supervisor for run-driven transitions:
+
+- `Supervisor.startRun` persists `status: "running"` alongside the new run record, so a run launched from the drawer matches the running column on reload (the drag-into-running path was already setting this client-side).
+- `Supervisor.finalize` persists `status: "review"` on exit 0 and `status: "failed"` otherwise. Cancellation produces a non-zero exit, so cancelled runs land in `failed`. The user can still drag from `review` to `done` (or anywhere else) manually.
+
+Runs themselves have no `status` field — they have `endedAt` and `exitCode`. "Run failed" in this doc means the supervisor mapped a non-zero exit onto the *card's* status.
+
 ## Wire protocol (Next.js ↔ Worker)
 
 Bidirectional NDJSON over stdio. One JSON object per line.
@@ -140,9 +149,9 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 
 | Failure | Behavior |
 |---|---|
-| Worker crashes mid-run | Supervisor marks run `failed`, includes last events, leaves worktree on disk for inspection. |
+| Worker crashes mid-run | Supervisor's `finalize` records a non-zero `exitCode` on the run, transitions the card to `failed`, and leaves the worktree on disk for inspection. |
 | Browser disconnects from SSE | Worker keeps running; reconnecting replays the NDJSON log from offset 0, then tails. |
-| SDK returns `result` with `subtype !== "success"` | Run marked `failed`, error message surfaced on card. |
+| SDK returns `result` with `subtype !== "success"` | Worker exits with `EXIT_SDK_ERROR`; supervisor transitions the card to `failed` and surfaces the error message on the card. |
 | `gh` not installed | Pre-flight returns `missing`; Open PR button disabled with install hint. |
 | `gh` not authenticated | Pre-flight returns `unauthenticated`; Open PR disabled with `gh auth login` hint. |
 | `git push` rejected (no rights) | Worker emits `error PUSH_FAILED` with stderr; UI shows inline error; run state unchanged. |
@@ -150,7 +159,7 @@ The protocol is intentionally narrow. Any new feature should add a single messag
 | `gh pr create` succeeds but stdout has no URL | Worker emits `error PR_URL_MISSING`; UI warns and disables to prevent double-push. |
 | User cancels mid-run | Parent sends `cancel`, worker calls `query.interrupt()`, exits cleanly. |
 | Two runs spawned for same card | Second one rejected by supervisor (one-active-run-per-card invariant). |
-| Diff capture fails after a successful run | Run still marked `done`; worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |
+| Diff capture fails after a successful run | Card still transitions to `review` (exit code is 0); worker emits an error event and skips `diff_ready`. UI shows "diff unavailable" with a pointer to the worktree. |
 | Trace write fails mid-run | Worker emits a single `worker warn` event; tracing degrades to best-effort; the run continues. |
 | Skill loading enabled but `<repoPath>/.claude/skills/` is missing | SDK loads from `["project"]` with no skills present; run proceeds normally; event log notes the empty skills load. |
 | Settings file is corrupt or schema-mismatched on boot | Home and settings pages catch `StoreReadError`, render with defaults, and surface a `<LoadBanner tone="warning">` so the app still boots; resaving from /settings overwrites the bad file. |
