@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { sweepStaleWorktrees } from "./cleanup.js";
 import { memoryStore, type Store } from "../store/index.js";
-import { diffPath, diffsDir, workDir } from "../paths.js";
+import { diffPath, diffsDir, tracePath, tracesDir, workDir } from "../paths.js";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -144,6 +144,36 @@ describe("sweepStaleWorktrees", () => {
     assert.deepEqual(r.removed, [runId]);
     assert.equal(await exists(path), false);
     assert.equal(await exists(patch), false);
+  });
+
+  it("removes a stale run's trace file alongside its worktree", async () => {
+    const store = memoryStore();
+    const runId = "run_trace_old";
+    const path = await makeWorktree(runId);
+    await mkdir(tracesDir(), { recursive: true });
+    const trace = tracePath(runId);
+    await writeFile(trace, '{"ts":"x","tool":"Read","args":{}}\n', "utf8");
+    const endedAt = new Date(Date.now() - 48 * HOUR).toISOString();
+    await seedCardWithRun(store, runId, endedAt);
+
+    const r = await sweepStaleWorktrees(store, { maxAgeMs: 24 * HOUR });
+    assert.deepEqual(r.removed, [runId]);
+    assert.equal(await exists(path), false);
+    assert.equal(await exists(trace), false);
+  });
+
+  it("logs orphan run ids without removing their trace files", async () => {
+    const store = memoryStore();
+    const runId = "run_trace_orphan";
+    const path = await makeWorktree(runId);
+    await mkdir(tracesDir(), { recursive: true });
+    const trace = tracePath(runId);
+    await writeFile(trace, "", "utf8");
+
+    const r = await sweepStaleWorktrees(store, { maxAgeMs: 24 * HOUR });
+    assert.deepEqual(r.orphans, [runId]);
+    assert.equal(await exists(path), true);
+    assert.equal(await exists(trace), true);
   });
 
   it("uses the supplied `now` for deterministic age calculation", async () => {

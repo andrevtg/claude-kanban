@@ -35,6 +35,9 @@ const RunInitPayloadSchema = z.object({
   // Where the worker writes the post-run patch file. Supplied by the
   // supervisor so the worker doesn't import paths.ts (module-boundaries).
   diffPath: z.string().min(1),
+  // Where the worker writes the per-tool-call trace file. Supplied by the
+  // supervisor; worker doesn't import paths.ts (module-boundaries).
+  tracePath: z.string().min(1),
   // How long the worker waits in the post-SDK approval window for an
   // approve_pr message before exiting. Defaults to 15 minutes when absent.
   // See phase-4/task-02 worker-lifecycle notes.

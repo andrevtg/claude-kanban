@@ -1,3 +1,5 @@
+**STATUS: done**
+
 # phase-4 / task-03 — `PreToolUse` hook for tracing
 
 ## Goal

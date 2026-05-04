@@ -23,6 +23,7 @@ function makeInit(): RunInitPayload {
     bashAllowlist: [],
     maxTurns: 1,
     diffPath: "/tmp/diffs/run.patch",
+    tracePath: "/tmp/traces/run.jsonl",
   };
 }
 

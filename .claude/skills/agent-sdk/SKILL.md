@@ -110,7 +110,7 @@ After `interrupt()`, the loop will still drain a final `result` message — let 
 
 ## What's deferred (do not add in phases 1–3)
 
-- Hooks (`PreToolUse`, `PostToolUse`, etc.) — phase 4 adds `PreToolUse` for tool-call traces.
+- Hooks beyond `PreToolUse` (`PostToolUse`, `Stop`, etc.) — out of scope. `PreToolUse` is wired in `src/worker/run.ts` (phase-4/task-03) as a pure observer that writes redacted tool-call entries to `~/.claude-kanban/traces/<runId>.jsonl`; trace failures degrade to a single `worker warn` event and never block the run.
 - Skills loading (`settingSources: ["project"]`) — phase 4.
 - `WebSearch` / `WebFetch` tools — phase 4, once UI rendering for them exists.
 - Token-level streaming (`includePartialMessages`) — phase 3 maybe.

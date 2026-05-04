@@ -12,6 +12,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { Readable } from "node:stream";
 import type { RunInitPayload } from "../protocol/messages.js";
 import { readWireMessages, type SendFn } from "./stdio.js";
+import { redactArgs, type TraceWriter } from "./trace.js";
 
 export interface RunResult {
   exitCode: number;
@@ -23,6 +24,9 @@ export interface RunAgentDeps {
   // External cancel signal owned by the worker. When aborted, runAgent
   // calls q.interrupt() once. Re-aborts are no-ops.
   cancel?: AbortSignal;
+  // Optional trace writer for the PreToolUse hook. When omitted, the hook
+  // is not registered.
+  trace?: TraceWriter;
 }
 
 // Legacy signature kept for tests that pass a stdin Readable: when `deps.cancel`
@@ -63,6 +67,7 @@ export async function runAgent(
   };
 
   try {
+    const traceWriter = deps.trace;
     const q = queryImpl({
       prompt: init.prompt,
       options: {
@@ -72,6 +77,31 @@ export async function runAgent(
         permissionMode: "acceptEdits",
         settingSources: [],
         maxTurns: init.maxTurns,
+        ...(traceWriter
+          ? {
+              hooks: {
+                PreToolUse: [
+                  {
+                    hooks: [
+                      async (input) => {
+                        if (input.hook_event_name === "PreToolUse") {
+                          // Fire-and-forget: never block tool execution. The
+                          // writer queues writes internally and reports its
+                          // own failures via the injected onError.
+                          void traceWriter.append({
+                            ts: new Date().toISOString(),
+                            tool: input.tool_name,
+                            args: redactArgs(input.tool_input),
+                          });
+                        }
+                        return { continue: true };
+                      },
+                    ],
+                  },
+                ],
+              },
+            }
+          : {}),
       },
     });
 

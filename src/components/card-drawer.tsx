@@ -6,6 +6,7 @@ import { CardForm } from "./card-form.js";
 import { CardDeleteConfirm } from "./card-delete-confirm.js";
 import { RunLog } from "./run-log.js";
 import { RunDiff } from "./run-diff.js";
+import { RunTrace } from "./run-trace.js";
 import { CancelButton } from "./cancel-button.js";
 import { PrAffordance } from "./pr-affordance.js";
 
@@ -32,7 +33,7 @@ type Props = {
 };
 
 type Mode = { kind: "view" } | { kind: "edit" } | { kind: "delete" };
-type Pane = "log" | "diff";
+type Pane = "log" | "diff" | "trace";
 
 export function CardDrawer({
   card,
@@ -281,15 +282,25 @@ export function CardDrawer({
                       </span>
                     ) : null}
                   </PaneTab>
+                  <PaneTab active={pane === "trace"} onClick={() => setPane("trace")}>
+                    Trace
+                  </PaneTab>
                 </div>
                 {pane === "log" ? (
                   <RunLog key={selectedRun.id} cardId={card.id} runId={selectedRun.id} />
-                ) : (
+                ) : pane === "diff" ? (
                   <RunDiff
                     key={selectedRun.id}
                     cardId={card.id}
                     runId={selectedRun.id}
                     diffStat={selectedRun.diffStat}
+                  />
+                ) : (
+                  <RunTrace
+                    key={selectedRun.id}
+                    cardId={card.id}
+                    runId={selectedRun.id}
+                    runDone={!!selectedRun.endedAt}
                   />
                 )}
               </>

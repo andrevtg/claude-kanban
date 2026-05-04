@@ -46,6 +46,7 @@ describe("runAgent (live SDK)", { skip: !live }, () => {
         bashAllowlist: [],
         maxTurns: 4,
         diffPath: join(scratch, `${runId}.patch`),
+        tracePath: join(scratch, `${runId}.jsonl`),
       };
 
       const collected: WireMessage[] = [];

@@ -63,6 +63,7 @@ We do **not** use `includePartialMessages` in v1 (no token-by-token streaming). 
 V1 ships with a deliberate, blunt policy: `permissionMode: "acceptEdits"` plus a worker-side allowlist of bash commands.
 
 The worker pre-approves these bash patterns:
+
 - `git status`, `git diff`, `git log`, `git add`, `git commit`
 - `npm test`, `npm run *`, `pnpm *`, `yarn *`
 - Test runners: `pytest`, `jest`, `vitest`, `go test`, `mvn test`, `cargo test`
@@ -84,13 +85,36 @@ for await (const m of q) { ... }
 
 (Note: the worker uses NDJSON over stdio, not Node IPC `process.send`. The protocol module exposes a small read-stdin-as-jsonl helper.)
 
-## Hooks and skills (deferred)
+## Hooks
 
-Hooks (`PreToolUse`, `PostToolUse`, etc.) and skills are out of scope for phases 1–3.
+`PreToolUse` is registered (phase-4/task-03) to record every tool call to a per-run JSONL trace at `~/.claude-kanban/traces/<runId>.jsonl`. The hook is a pure observer — it never blocks or modifies tool calls. Its `tool_input` is redacted via `redactArgs` (4 KiB string cap, binary payloads replaced with `[truncated N bytes]`) before being written; the regular event log still carries the full input.
 
-Phase 4 will introduce:
-- A `PreToolUse` hook that records every tool call to a structured trace alongside the NDJSON log, useful for "what did the agent actually do" review.
-- Optional skills loading via `settingSources: ["project"]` so users can drop a `.claude/skills/` into their target repo.
+Configuration lives in `src/worker/run.ts`:
+
+```ts
+hooks: {
+  PreToolUse: [
+    {
+      hooks: [async (input) => {
+        if (input.hook_event_name === "PreToolUse") {
+          void traceWriter.append({
+            ts: new Date().toISOString(),
+            tool: input.tool_name,
+            args: redactArgs(input.tool_input),
+          });
+        }
+        return { continue: true };
+      }],
+    },
+  ],
+}
+```
+
+Trace failures degrade silently after a single `worker warn: trace write failed` event so the run continues. The writer guarantees the trace file exists at close time even when no tool calls fired (zero-byte file documents that tracing was active).
+
+### Skills loading (deferred)
+
+Optional skills loading via `settingSources: ["project"]` is still phase 4 (task-04). Until then, the worker keeps `settingSources: []` so it doesn't inherit Next.js's environment.
 
 ## What we don't use (yet)
 

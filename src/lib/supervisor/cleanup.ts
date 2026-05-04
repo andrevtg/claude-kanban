@@ -10,7 +10,7 @@
 
 import { readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { diffPath, workDir } from "../paths.js";
+import { diffPath, tracePath, workDir } from "../paths.js";
 import type { Run } from "../../protocol/index.js";
 import type { Store } from "../store/index.js";
 
@@ -88,6 +88,13 @@ export async function sweepStaleWorktrees(
       } catch (e) {
         process.stderr.write(
           `[supervisor] sweep failed to remove diff for ${name}: ${e instanceof Error ? e.message : String(e)}\n`,
+        );
+      }
+      try {
+        await rm(tracePath(name), { force: true });
+      } catch (e) {
+        process.stderr.write(
+          `[supervisor] sweep failed to remove trace for ${name}: ${e instanceof Error ? e.message : String(e)}\n`,
         );
       }
     } catch (e) {

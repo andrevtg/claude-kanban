@@ -23,7 +23,7 @@ import {
   type WireMessage,
 } from "../../protocol/messages.js";
 import type { Card, EventLogEntry, GlobalSettings } from "../../protocol/index.js";
-import { diffPath, logsDir, runDir } from "../paths.js";
+import { diffPath, logsDir, runDir, tracePath, tracesDir } from "../paths.js";
 import type { Store } from "../store/index.js";
 
 export interface RunHandle {
@@ -166,6 +166,7 @@ export class Supervisor extends EventEmitter {
     await this.store.appendRun(card.id, { id: runId, startedAt, branchName });
 
     await mkdir(logsDir(), { recursive: true });
+    await mkdir(tracesDir(), { recursive: true });
     const stderrFile = createWriteStream(join(logsDir(), `${runId}.stderr`), { flags: "a" });
 
     const child = spawn(this.nodePath, [...this.nodeArgs, this.workerEntry], {
@@ -219,6 +220,7 @@ export class Supervisor extends EventEmitter {
       bashAllowlist: [...settings.bashAllowlist],
       maxTurns: this.maxTurns,
       diffPath: diffPath(runId),
+      tracePath: tracePath(runId),
     };
     this.sendToWorker(active, { type: "init", run: initPayload });
 

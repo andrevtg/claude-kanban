@@ -26,6 +26,7 @@ import { captureDiff, createWorktree, GitError } from "./git.js";
 import { openPr } from "./pr.js";
 import { runAgent as defaultRunAgent } from "./run.js";
 import { makeSender, readWireMessages, type SendFn } from "./stdio.js";
+import { openTraceWriter } from "./trace.js";
 import type { RunInitPayload, WireMessage } from "../protocol/messages.js";
 
 export type RunAgentFn = typeof defaultRunAgent;
@@ -109,9 +110,25 @@ export async function main(
     });
   });
 
+  const traceWriter = openTraceWriter(init.tracePath, {
+    onError: (message) => {
+      send({
+        type: "event",
+        event: {
+          kind: "worker",
+          level: "warn",
+          message: `trace write failed: ${message}`,
+        },
+      });
+    },
+  });
+
   const { exitCode: agentExit } = await runAgentImpl(init, send, input, {
     cancel: cancelController.signal,
+    trace: traceWriter,
   });
+
+  await traceWriter.close();
 
   send({
     type: "event",

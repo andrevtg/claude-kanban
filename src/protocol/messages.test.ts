@@ -26,6 +26,7 @@ const samples: WireMessage[] = [
       bashAllowlist: ["git status", "ls"],
       maxTurns: 250,
       diffPath: "/tmp/diffs/run_01HABC.patch",
+      tracePath: "/tmp/traces/run_01HABC.jsonl",
     },
   },
   {
@@ -43,6 +44,7 @@ const samples: WireMessage[] = [
       bashAllowlist: [],
       maxTurns: 10,
       diffPath: "/tmp/diffs/run_01HABC.patch",
+      tracePath: "/tmp/traces/run_01HABC.jsonl",
       approveTimeoutMs: 60_000,
     },
   },
