@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-04 — tasks/phase-5 — fix task-02 acceptance numbering
 - 2026-05-04 — tasks/phase-5 — expand stubs into real task files
 - 2026-05-04 — phase-4/task-04 — per-card `loadSkills` toggle: Card schema field (default false, legacy-tolerant), `RunInitPayload` carries it, supervisor passes it through, worker flips `settingSources: ["project"]` and adds `Skill` to `allowedTools` when on; card-form checkbox + drawer per-session per-card confirmation modal (sessionStorage, key `<cardId>:<state>`, cleared on toggle change); docs updated
 - 2026-05-04 — phase-4/task-03 — register `PreToolUse` hook that writes redacted tool calls to `~/.claude-kanban/traces/<runId>.jsonl`; supervisor populates `tracePath`, sweep removes stale traces; new `GET /api/cards/:id/runs/:runId/trace` route and `<RunTrace>` drawer pane

@@ -287,26 +287,43 @@ works." The triggering recipe is in the audit report's notes column.
     a wire-protocol curiosity.
 21. Old-run trace 404 — drawer trace pane shows "Tracing not
     enabled for this run." Already correct; verify.
-22-25. PR pre-flight + creation paths — phase-4/task-02 documents
-    all four; verify each fires the correct chip with the correct
-    affordance. Retry on PUSH_FAILED and PR_CREATE_FAILED;
-    no Retry on PR_URL_MISSING (per task-02's "stays disabled").
-26-28. PR 409 guards — verify the API responses surface as
-    inline errors, not silent UI noise.
-22. Skills directory missing — phase-4/task-04 specifies the
+22. `gh` not installed — PR affordance shows the GH_MISSING chip
+    with an "Install GitHub CLI" hint; no Retry (the user must
+    install `gh` first). Verify per phase-4/task-02.
+23. `gh` not authenticated — PR affordance shows the GH_UNAUTH
+    chip hinting `gh auth login`; Retry available so the user can
+    re-attempt after authenticating. Verify per phase-4/task-02.
+24. `git push` rejected (PR flow) — PR affordance shows the
+    PUSH_FAILED chip with push stderr in Copy details; Retry
+    available. Verify per phase-4/task-02.
+25. `gh pr create` failed — PR affordance shows the
+    PR_CREATE_FAILED chip with `gh` stderr in Copy details; Retry
+    available. Verify per phase-4/task-02. (Note: when `gh pr
+    create` succeeds but stdout has no URL, the affordance stays
+    disabled with no Retry per task-02's "PR_URL_MISSING" path.)
+26. PR 409 `already_open` — clicking Open PR on a run that already
+    has `prUrl` surfaces an inline error pointing to the existing
+    PR rather than a silent no-op. Verify.
+27. PR 409 `no_diff` — clicking Open PR on a run with no diff
+    surfaces an inline error explaining there's nothing to push.
+    Verify.
+28. PR 409 `run_not_done` — clicking Open PR on a not-done run
+    surfaces an inline error explaining the run must finish first.
+    Verify.
+29. Skills directory missing — phase-4/task-04 specifies the
     "empty skills load" event. Verify the event log surfaces it.
-23. Skill confirmation cancelled — no error; modal closes; no
+30. Skill confirmation cancelled — no error; modal closes; no
     run starts. Verify.
-24. Form validation error — already verified by phase-3/task-01
+31. Form validation error — already verified by phase-3/task-01
     acceptance; spot-check.
-25. Cross-card 404 — the form / drawer surfaces "this card no
+32. Cross-card 404 — the form / drawer surfaces "this card no
     longer exists" rather than crashing. Likely a gap; fix.
-26. Settings save fails — surfaced inline on the settings page
+33. Settings save fails — surfaced inline on the settings page
     with the FS error. Likely already correct; verify.
-27. Settings load fails — the app boots with defaults and
+34. Settings load fails — the app boots with defaults and
     surfaces a banner ("settings load error; using defaults").
     Likely a gap; fix.
-28. Card list fetch fails — the home page shows an error state
+35. Card list fetch fails — the home page shows an error state
     with Retry, not an empty list. Likely a gap; fix.
 
 ### "Retry" / "Copy details" universality check
