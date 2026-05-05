@@ -471,8 +471,9 @@ data-residency multiplier, and third-party platform pricing all
 Implication for the port: the README (`docs/DEMO.md` too) needs a
 new **disclosure layer** that local mode does not need. "Each run
 costs roughly $X per minute of agent time, plus token costs." The
-`<RunCard />` could surface a running cost estimate from the
-session's reported usage if the SSE stream emits it; the public docs
+`<CardDrawer />` (or the `<BoardCard />` pulse area) could surface a
+running cost estimate from the session's reported usage if the SSE
+stream emits it; the public docs
 do not (yet) document a `usage` field on session events at the
 granularity of the Messages API's `usage` block — verify before
 committing *(unverified — re-check before committing)*.

@@ -6,6 +6,7 @@ One line per completed task. Newest at top.
 - YYYY-MM-DD — phase-N/task-NN — short description
 -->
 
+- 2026-05-04 — chore — drift-fix `docs/04-error-states-audit.md` and `docs/06-managed-agents-port.md` to remove dangling references to the deleted `run-card` component (component was removed in `0d8de75`); fix row #12 in the audit to say the card transitions to `review` on diff-capture failure (exit 0), not `done` — matches the supervisor-driven status work in `19e0ffd`.
 - 2026-05-04 — fix — drag-to-running now appends the new run to local state via `onRunStarted` (parsing the `RunHandle` from POST `/run`), matching the drawer's Run button. Previously the response was discarded, so `RunDoneWatcher` never mounted and the drawer showed an empty run list until a manual refresh.
 - 2026-05-04 — chore — `pnpm reset:runs` script (`src/cli/reset-runs.ts`): clears `runs[]` and resets `status` to `backlog` on every card via the file store, then removes all artifacts under `~/.claude-kanban/{work,traces,diffs,logs}/`. Dry-run by default; pass `--yes` to execute. Card identities and settings are preserved.
 - 2026-05-04 — chore — column-card delete confirm now opens as a centered viewport modal (via `createPortal` to `document.body`) rather than expanding inline within the ~280px column. Backdrop click and Escape both dismiss; drawer keeps its inline confirm because drawer width handles it fine.
