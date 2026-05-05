@@ -171,6 +171,8 @@ export function Board({
     try {
       const runRes = await fetch(`/api/cards/${cardId}/run`, { method: "POST" });
       if (runRes.ok) {
+        const handle = (await runRes.json()) as { runId: string; startedAt: string };
+        onRunStarted(cardId, { id: handle.runId, startedAt: handle.startedAt });
         return;
       }
       if (runRes.status === 409) {
